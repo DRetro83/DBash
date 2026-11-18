@@ -1,0 +1,17 @@
+{
+  "name": "dbash",
+  "version": "0.4.0",
+  "private": true,
+  "description": "DBash: a smart Debian terminal with a local AI that helps you learn Linux",
+  "license": "MIT",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "NO_STRIP=true tauri build --bundles appimage",
+    "test": "node --test tests/*.test.js",
+    "preview": "python3 scripts/build-preview.py"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.12.4",
+    "jsdom": "^26.1.0"
+  }
+}

@@ -1,0 +1,10 @@
+The fonts in this folder are under the SIL Open Font License 1.1 (https://openfontlicense.org):
+
+  VT323            (c) The VT323 Project Authors
+  IBM Plex Mono    (c) IBM Corp.
+  JetBrains Mono   (c) The JetBrains Mono Project Authors
+  Press Start 2P   (c) The Press Start 2P Project Authors
+  Share Tech Mono  (c) Carrois Type Design
+
+They were taken from the Fontsource packages (https://fontsource.org), latin and latin-ext only,
+so DBash never has to load anything from the internet to show its screen.

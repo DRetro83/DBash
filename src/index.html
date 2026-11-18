@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DBash // Smart Terminal</title>
+<link rel="stylesheet" href="vendor/fonts/fonts.css">
+<link rel="stylesheet" href="css/dbash.css">
+</head>
+<body>
+<div class="monitor" id="monitor">
+ <div class="titel">
+   <div class="ico"><button class="wk" title="Menu">≡</button><button class="wk" title="Pin">▪</button></div>
+   <div class="naam">DBash — Smart Terminal</div>
+   <div class="knoppen"><button class="wk" title="Help" onclick="document.getElementById('in').value='help';document.getElementById('in').focus()">?</button><button class="wk" title="Minimize">_</button><button class="wk" title="Maximize">□</button><button class="wk x" title="Close">✕</button></div>
+ </div>
+ <div class="screen glow scan" id="screen">
+  <div class="bar">
+    <div><span class="led" id="led"></span><span id="title">DBASH // NO AI</span></div>
+    <div class="knoppenrij"><button class="gear" id="hist" title="Conversations"><svg width="20" height="20" viewBox="0 0 10 10" shape-rendering="crispEdges" fill="currentColor" style="vertical-align:middle"><path d="M1 1h8v1H1zM0 2h1v4H0zM9 2h1v4H9zM1 6h3v1H1zM6 6h3v1H6zM3 7h2v1H3zM3 8h1v1H3zM2 3h6v1H2zM2 4h4v1H2z"/></svg></button><button class="gear" id="boek" title="Command book"><svg width="20" height="20" viewBox="0 0 10 10" shape-rendering="crispEdges" fill="currentColor" style="vertical-align:middle"><path d="M1 1h3v1H1zM6 1h3v1H6zM0 2h1v6H0zM9 2h1v6H9zM4 2h2v7H4zM1 8h3v1H1zM6 8h3v1H6zM2 3h1v1H2zM2 5h1v1H2zM7 3h1v1H7zM7 5h1v1H7z"/></svg></button><button class="gear" id="gear" title="Settings">⚙</button></div>
+  </div>
+  <div id="out"></div>
+  <div class="modal" id="wizard"><div class="doos wiz" id="wizdoos"></div></div>
+  <div class="voet">
+    <label id="weblabel" title="Allow the AI to search the internet (DuckDuckGo) in this conversation"><input type="checkbox" id="web"><span><svg width="14" height="14" viewBox="0 0 7 7" shape-rendering="crispEdges" fill="currentColor" style="vertical-align:-2px"><path d="M2 0h3v1H2zM1 1h1v1H1zM5 1h1v1H5zM0 2h1v3H0zM6 2h1v3H6zM1 5h1v1H1zM5 5h1v1H5zM2 6h3v1H2zM3 1h1v5H3zM1 3h5v1H1z"/></svg> WEB<span class="lang"> SEARCH FOR THIS CHAT</span></span></label>
+    <label id="bklabel" title="Tick = make a Timeshift backup now · untick = delete it when everything is OK"><input type="checkbox" id="bk"><span>⟲ BACKUP</span><span id="bkinfo"></span></label><button class="tl-knop" id="bkterug" title="Go back to the backup" style="display:none">⟲<span class="lang"> ROLL BACK</span></button>
+    <button class="tl-knop" id="rolknop" title="AI role: click to switch (Free · Explain · Coach · Teacher)"></button><span class="modelwissel" id="modelwissel" title="Quick model switch"></span><button class="tl-knop" id="geheugen" title="How full the AI memory of this chat is"></button><div class="modelmenu" id="modelmenu"></div>
+    <span class="rechts" id="voetinfo">DuckDuckGo · downloads always ask first</span>
+  </div>
+
+  <aside class="panel" id="panel">
+    <button class="close" id="close">✕</button>
+    <h2>⚙ SETTINGS</h2>
+
+    <h3>[ AI ]</h3>
+    <label>Model</label>
+    <select id="model"></select>
+    <label>Models folder</label>
+    <input type="text" id="mmap" value="~/DBash/Models">
+    <div class="chk"><input type="checkbox" id="updstart" checked><span>Check models &amp; downloads for updates on start</span></div>
+    <div class="chk"><input type="checkbox" id="appupd" checked><span>Check for a new DBash version once a day (asks GitHub; installs only when you say y)</span></div>
+    <label>Model updates</label>
+    <select id="mupd"><option value="off">Off (never check models)</option><option value="notify">Notify (show ↑, you click UPDATE)</option><option value="auto">Auto-download (still asks before replacing)</option></select>
+    <label>Keep old versions</label>
+    <select id="mkeep"><option value="0">None (delete right after update)</option><option value="1">1 per model</option><option value="all">All</option></select>
+    <label>Server address</label>
+    <input type="text" id="url" value="http://127.0.0.1:8080">
+    <div class="chk"><input type="checkbox" id="gpu" checked><span>Use GPU (Vulkan)</span></div>
+    <label>AI answer language</label>
+    <select id="taal"><option value="auto">Same language as my question (English if unsure)</option><option value="en">English</option><option value="nl">Nederlands</option></select>
+    <label>AI memory (context)</label>
+    <select id="ctx"><option value="8192">8,000 tokens (least VRAM)</option><option value="16384">16,000 tokens (recommended)</option><option value="32768">32,000 tokens (remembers most, ~1-2 GB more VRAM)</option></select>
+    <div class="info2">How much of the conversation the AI can keep in mind at once. Takes effect the next time the model loads. When a chat gets full, DBash first leaves out old command output, then summarizes the oldest messages. The MEM meter at the bottom shows how full it is.</div>
+    <label>Share command output with the AI</label>
+    <select id="deeluit"><option value="ask">With my next question (+ ASK AI button)</option><option value="always">Always, and look by itself after RUN ALL</option><option value="never">Never</option></select>
+    <div class="chk"><input type="checkbox" id="runvraag" checked><span>After an answer, ask "Run it? [y/n]" in the terminal</span></div>
+    <div class="info2">What you ran goes with your next question, so you can just ask "what is wrong?". Always = after ▶ RUN ALL the AI also looks at the results by itself. Long logs are shortened to the error lines and the last lines. It stays on your PC: the AI runs locally.</div>
+    <div class="chk"><input type="checkbox" id="think"><span>Show thinking</span></div>
+    <button class="btn" id="load">▶ LOAD AI</button> <button class="btn" id="getmodels">⤓ GET MODELS</button> <button class="btn" id="wizknop">⚙ SETUP WIZARD</button>
+    <div id="loadmsg" style="font-size:.75em;margin-top:6px;color:var(--dim)"></div>
+
+
+    <h3>[ TIMESHIFT ]</h3>
+    <div class="info2">Use the <b>⟲ BACKUP</b> box at the bottom, like the WEB box: tick it before you change something = DBash makes a Timeshift backup. Everything OK? Untick it = the backup is deleted. Not OK? ⟲ ROLL BACK. Your files in /home are never touched.</div>
+    <div class="chk"><input type="checkbox" id="ts_ess" checked><span>Essentials only (skip caches, Docker, Flatpak data and logs)</span></div>
+    <label>Backup disk</label>
+    <select id="ts_dev"><option value="">Same disk as the system</option></select>
+    <button class="btn" id="ts_check">⟲ CHECK TIMESHIFT</button> <button class="btn" id="ts_install">⤓ INSTALL TIMESHIFT</button>
+    <div id="ts_status" class="info2">(real app only)</div>
+
+    <h3>[ SUDO ]</h3>
+    <label>sudo password</label>
+    <select id="sudomodus"><option value="15">Remember 15 min after last use (like a terminal)</option><option value="session">Remember until DBash closes</option><option value="ask">Ask every time</option></select>
+    <div class="info2">You type it in the terminal itself, like in Konsole. It is only kept in memory, never saved.</div>
+
+    <h3>[ COMMAND SAFETY ]</h3>
+    <div class="info2"><span class="c-ok">SAFE</span> read-only · <span class="c-warn">SUDO</span> changes the system (tick ⟲ BACKUP first to be able to undo) · <span class="c-err">DANGER</span> always extra confirmation.</div>
+    <div class="info2"><span class="c-info">WEB</span> Commands from answers that used web search are marked and always need confirmation. Web pages can hide instructions for the AI, so DBash never runs them blindly.</div>
+
+    <h3>[ WEBSITES ]</h3>
+    <div class="chk"><input type="checkbox" id="lees" checked><span>Reader mode (show pages as text inside DBash)</span></div>
+    <div class="info2">Off = websites only open in your normal browser. On = you can choose: ≡ READER MODE or ↗ OPEN IN BROWSER.</div>
+    <label>Search region</label>
+    <select id="zoekregio"><option value="">Worldwide</option><option value="be-nl">Belgium (Dutch)</option><option value="nl-nl">Netherlands</option><option value="be-fr">Belgium (French)</option><option value="uk-en">United Kingdom</option><option value="us-en">United States</option><option value="de-de">Germany</option></select>
+    <label>Browser 1 (first choice)</label><select id="br1"><option value="default">System default (xdg-open)</option><option value="firefox">Firefox</option><option value="firefox-esr">Firefox ESR</option><option value="chromium">Chromium</option><option value="google-chrome">Google Chrome</option><option value="brave">Brave</option><option value="vivaldi">Vivaldi</option><option value="librewolf">LibreWolf</option><option value="falkon">Falkon (KDE)</option><option value="konqueror">Konqueror (KDE)</option><option value="flatpak-firefox">Firefox (Flatpak)</option><option value="flatpak-chromium">Chromium (Flatpak)</option><option value="flatpak-brave">Brave (Flatpak)</option><option value="kde-open">KDE default (kde-open)</option></select>
+    <label>Browser 2 (if 1 does not work)</label><select id="br2"><option value="none">— none —</option><option value="default">System default (xdg-open)</option><option value="firefox">Firefox</option><option value="firefox-esr">Firefox ESR</option><option value="chromium">Chromium</option><option value="google-chrome">Google Chrome</option><option value="brave">Brave</option><option value="vivaldi">Vivaldi</option><option value="librewolf">LibreWolf</option><option value="falkon">Falkon (KDE)</option><option value="konqueror">Konqueror (KDE)</option><option value="flatpak-firefox">Firefox (Flatpak)</option><option value="flatpak-chromium">Chromium (Flatpak)</option><option value="flatpak-brave">Brave (Flatpak)</option><option value="kde-open">KDE default (kde-open)</option></select>
+    <label>Browser 3 (if 2 does not work)</label><select id="br3"><option value="none">— none —</option><option value="default">System default (xdg-open)</option><option value="firefox">Firefox</option><option value="firefox-esr">Firefox ESR</option><option value="chromium">Chromium</option><option value="google-chrome">Google Chrome</option><option value="brave">Brave</option><option value="vivaldi">Vivaldi</option><option value="librewolf">LibreWolf</option><option value="falkon">Falkon (KDE)</option><option value="konqueror">Konqueror (KDE)</option><option value="flatpak-firefox">Firefox (Flatpak)</option><option value="flatpak-chromium">Chromium (Flatpak)</option><option value="flatpak-brave">Brave (Flatpak)</option><option value="kde-open">KDE default (kde-open)</option></select>
+    <button class="btn" id="brtest">↗ TEST</button> <span id="brmsg" class="info2"></span>
+
+    <h3>[ BACKUP ]</h3>
+    <div class="info2">One file with your settings, chats, folders, command book, aliases, models list, downloads list and log.</div>
+    <button class="btn" id="bk-export">⤓ EXPORT BACKUP</button> <button class="btn" id="bk-import">⤒ RESTORE BACKUP</button>
+    <input type="file" id="bk-bestand" accept=".json,application/json" style="display:none">
+    <div id="bk-msg" class="info2"></div>
+
+    <h3>[ DOWNLOADS ]</h3>
+    <label>Download folder</label>
+    <input type="text" id="dlmap" value="~/DBash/Downloads">
+    <div style="font-size:.7em;color:var(--dim);margin-top:4px">In the real app DBash saves every download here.</div>
+
+    <h3>[ THEME ]</h3>
+    <div class="themes" id="themes"></div>
+
+    <h3>[ SYSTEM ]</h3>
+    <div class="chk"><input type="checkbox" id="sys_send" checked><span>Tell the AI about my system</span></div>
+    <label>Operating system</label><input type="text" id="sys_os">
+    <label>Desktop</label><input type="text" id="sys_de">
+    <label>GPU</label><input type="text" id="sys_gpu">
+    <label>CPU</label><input type="text" id="sys_cpu">
+    <label>RAM</label><input type="text" id="sys_ram">
+    <label>Notes for the AI</label><textarea id="sys_extra" rows="5" placeholder="Things the AI should know about you or your PC, e.g. I game with Heroic and Steam. My second disk is for backups."></textarea>
+    <div class="info2">The AI reads these notes with every question. DBash already tells it how DBash works (RUN buttons, sudo, no pagers) and which disks you have.</div>
+    <div style="font-size:.7em;color:var(--dim);margin-top:4px">In the real app DBash reads this automatically (lsb_release, lspci, lscpu, free).</div>
+
+    <h3>[ AI ROLE ]</h3>
+    <div class="info2">How the AI helps you. Your Notes for the AI (above) are always added on top of the role.</div>
+    <div id="rollen"></div>
+    <div class="lagen">What the AI gets with every question:
+1. DBash rules  (always: safety, RUN, sudo, file cards)
+2. AI role      (the choice above)
+3. Your system  (OS, disks, current folder)
+4. Your notes   (Notes for the AI: they change the role)
+5. Language     (the language you write in, else English)</div>
+    <button class="btn" id="lesknop">📚 LESSONS</button>
+    <label>What you already know</label>
+    <div id="kennis" class="kennis"></div>
+    <input type="text" id="kennisnieuw" placeholder="add a command you know, e.g. grep, then Enter">
+    <div class="info2">Coach and Teacher add commands here when you typed them right. The AI then skips the basics you know. Click ✕ to remove one.</div>
+
+    <h3>[ WINDOW ]</h3>
+    <label>Style</label>
+    <select id="frame">
+      <option value="venster">Window (with title bar)</option>
+      <option value="crt">CRT monitor (rounded)</option>
+      <option value="kaal">Bare (no frame, for the real app)</option>
+    </select>
+
+    <h3>[ FONT ]</h3>
+    <label>Font</label>
+    <select id="font">
+      <option value="'IBM Plex Mono',monospace">IBM Plex Mono (clear)</option>
+      <option value="'JetBrains Mono',monospace">JetBrains Mono (very clear)</option>
+      <option value="'VT323',monospace">VT323 (classic CRT)</option>
+      <option value="'Share Tech Mono',monospace">Share Tech Mono</option>
+      <option value="'Press Start 2P',monospace">Press Start 2P (8-bit)</option>
+      <option value="'Courier New',monospace">Courier (typewriter)</option>
+    </select>
+    <label>Size: <span id="sizev"></span>px</label>
+    <input type="range" id="size" min="12" max="32">
+
+    <h3>[ EFFECTS ]</h3>
+    <div class="chk"><input type="checkbox" id="fx-scan" checked><span>Scanlines</span></div>
+    <div class="chk"><input type="checkbox" id="fx-glow" checked><span>Phosphor glow</span></div>
+    <div class="chk"><input type="checkbox" id="fx-flicker"><span>Flicker</span></div>
+    <div class="chk"><input type="checkbox" id="fx-kleur" checked><span>Multi-color text</span></div>
+    <div class="chk"><input type="checkbox" id="fx-type" checked><span>Typewriter effect on boot</span></div>
+  </aside>
+  <aside class="panel links" id="bpanel">
+    <button class="close" id="bclose">✕</button>
+    <h2><svg width="20" height="20" viewBox="0 0 10 10" shape-rendering="crispEdges" fill="currentColor" style="vertical-align:middle"><path d="M1 1h3v1H1zM6 1h3v1H6zM0 2h1v6H0zM9 2h1v6H9zM4 2h2v7H4zM1 8h3v1H1zM6 8h3v1H6zM2 3h1v1H2zM2 5h1v1H2zM7 3h1v1H7zM7 5h1v1H7z"/></svg> COMMAND BOOK</h2>
+    <input class="zoekchat" id="zoekboek" placeholder="Search commands…" autocomplete="off">
+    <div class="lijst" id="boeklijst"></div>
+    <div class="hint">Click a command to see it, run it or put it in the prompt. ✎ edit · ✕ delete.</div>
+    <div class="rij">
+      <button class="btn" id="b-cmd">+ COMMAND</button>
+      <button class="btn" id="b-alias">+ ALIAS</button>
+      <button class="btn" id="b-os">+ OS</button>
+      <button class="btn" id="b-reset">↺ RESET</button>
+      <button class="btn" id="b-export">⤓ TO BASH</button>
+    </div>
+    <div id="bform"></div>
+  </aside>
+  <aside class="panel links" id="hpanel">
+    <button class="close" id="hclose">✕</button>
+    <h2><svg width="20" height="20" viewBox="0 0 10 10" shape-rendering="crispEdges" fill="currentColor" style="vertical-align:middle"><path d="M1 1h8v1H1zM0 2h1v4H0zM9 2h1v4H9zM1 6h3v1H1zM6 6h3v1H6zM3 7h2v1H3zM3 8h1v1H3zM2 3h6v1H2zM2 4h4v1H2z"/></svg> CONVERSATIONS</h2>
+    <div class="chk"><input type="checkbox" id="historie" checked><span>Save conversations</span></div>
+    <input class="zoekchat" id="zoekchat" placeholder="Search chats and downloads…" autocomplete="off">
+    <div class="lijst" id="lijst"></div>
+    <div class="lijst lib" id="lib"></div>
+    <input type="file" id="modelbestand" accept=".llamafile,.gguf" multiple style="display:none">
+    <div class="hint">Drag conversations into a folder, or use ⇄. Double-click a name to rename it.</div>
+    <div class="rij">
+      <button class="btn" id="g-nieuw">+ CHAT</button>
+      <button class="btn" id="g-map">+ FOLDER</button>
+      <button class="btn" id="g-export">⤓ EXPORT</button>
+      <button class="btn" id="g-wis">✕ CLEAR ALL</button>
+    </div>
+
+  </aside>
+ </div>
+</div>
+
+<link rel="stylesheet" href="vendor/xterm.css">
+<script src="js/lessons.js"></script>
+<script src="js/app.js"></script>
+<script src="js/demo.js"></script>
+<script src="vendor/xterm.js"></script>
+<script src="vendor/addon-fit.js"></script>
+<script src="js/real.js"></script>
+<script src="js/learn.js"></script>
+</body>
+</html>
