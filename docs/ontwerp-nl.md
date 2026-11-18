@@ -633,3 +633,8 @@ Overslaan mag. Opnieuw starten kan via `wizard` of ⚙ → AI → SETUP WIZARD.
 - **Een gewone "hallo" krijgt een gewone "hallo".** De AI krijgt niet meer als eerste zin "You are a Debian Linux assistant". Hij is nu de assistent in DBash op je eigen pc. Bij een begroeting of een praatje antwoordt hij kort, zonder commando's en zonder over Debian te beginnen.
 - **De rol Free** is een algemene assistent voor elke vraag. Commando's komen alleen als je iets op je pc wilt laten doen.
 - **Update-check bij elke start** in plaats van één keer per dag. Zeg je "not now", dan vraagt DBash het voor die versie niet opnieuw. Met `update` kijk je meteen.
+- **Modellen-updates zijn echt.** DBash onthoudt bij een download met `hf` uit welke Hugging Face-repo een model komt. Dat leest hij ook uit de `.source`-bestanden van het downloadscript, of hij herkent de Mozilla.ai-llamafiles. Hij vergelijkt de grootte van jouw bestand met hetzelfde bestand daar. Alleen een echt ander bestand geeft een melding, met de naam van het model erbij. UPDATE zet het oude bestand in `old/` en downloadt het nieuwe; mislukt dat, dan komt het oude terug. Eerst vergeleek de check verkeerde datums en meldde hij "1 update found" voor niets, en de knop UPDATE was nog de nep-download uit het prototype.
+- **Opgeruimd:**
+  - `app.js` (meer dan 2000 regels) is opgesplitst in `core`, `files`, `web`, `ai`, `input`, `chats`, `models`, `run`, `book` en `start`. Het zijn dezelfde hoofdstukken in dezelfde volgorde, en `src/js/README.md` legt elk bestand en de Nederlandse namen uit.
+  - Geen ongebruikte functies meer, de laatste Nederlandse titels staan in het Engels, en de backend is netjes volgens clippy.
+  - Er zijn nu 20 tests, en ze zijn allemaal groen, ook op GitHub.
