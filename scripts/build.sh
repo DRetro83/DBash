@@ -5,8 +5,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' src-tauri/Cargo.toml | head -1)
-APP_VER=$(sed -n "s/^const DBASH_VERSIE='\(.*\)';/\1/p" src/js/app.js)
-[ "$VERSION" = "$APP_VER" ] || { echo "Version mismatch: Cargo.toml $VERSION, app.js $APP_VER"; exit 1; }
+APP_VER=$(sed -n "s/^const DBASH_VERSIE='\(.*\)';/\1/p" src/js/core.js)
+[ "$VERSION" = "$APP_VER" ] || { echo "Version mismatch: Cargo.toml $VERSION, core.js $APP_VER"; exit 1; }
 grep -q "\"version\": \"$VERSION\"" src-tauri/tauri.conf.json || { echo "Version mismatch in tauri.conf.json"; exit 1; }
 
 if [ "${1:-}" != "--sh-only" ]; then

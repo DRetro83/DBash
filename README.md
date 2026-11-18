@@ -140,7 +140,7 @@ scripts/build.sh                               # dist/: AppImage, dbash-<version
 python3 scripts/build-preview.py               # dist/DBash-preview.html: try the screen in any browser
 ```
 
-**To make a release:** put the new version in `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json` and `src/js/app.js` (`DBASH_VERSIE`), add a section to [CHANGELOG.md](CHANGELOG.md), then push a tag such as `v0.4.1`. GitHub Actions builds everything and publishes the release, and DBash installations find it the next day.
+**To make a release:** put the new version in `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json` and `src/js/core.js` (`DBASH_VERSIE`), add a section to [CHANGELOG.md](CHANGELOG.md), then push a tag such as `v0.4.1`. GitHub Actions builds everything and publishes the release, and DBash installations find it the next day.
 
 ### How it is put together
 
@@ -148,12 +148,8 @@ python3 scripts/build-preview.py               # dist/DBash-preview.html: try th
 src/                    the screen (plain HTML, CSS and JavaScript, no framework)
   index.html            layout
   css/dbash.css         look and themes
-  js/lessons.js         the lesson pack (data)
-  js/app.js             shared logic: chat, roles, models, command book, settings
-  js/demo.js            browser preview only: simulated commands and demo answers
-  js/real.js            inside the app: the real backend (terminal, sudo, files, Timeshift, updates)
-  js/learn.js           runs the lessons and checks what you type
-  js/splash.js          the loading screen at start
+  js/                   the logic, in small files: see src/js/README.md
+                        (lessons.js = the lesson pack, real.js = the link to the backend)
   vendor/               xterm.js (MIT) and the fonts (OFL)
 src-tauri/src/main.rs   backend in Rust (Tauri 2): PTY, commands, llamafile, downloads, self-update
 packaging/              header of the standalone .sh
@@ -164,7 +160,7 @@ data/models.json        the recommended AI models (DBash reads it from GitHub)
 docs/                   design notes
 ```
 
-Most names in the code are Dutch (`regel` = line, `voerUit` = run, `vraagAI` = ask the AI). The screen and all texts are in English, and the AI answers in the language you write in.
+Most names in the code are Dutch (`regel` = line, `voerUit` = run, `vraagAI` = ask the AI); [src/js/README.md](src/js/README.md) has a small dictionary. The screen and all texts are in English, and the AI answers in the language you write in.
 
 ## 🤝 Contributing
 

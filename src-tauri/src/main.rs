@@ -160,7 +160,7 @@ fn forceer_sudo_a(cmd: &str) -> String {
     let mut i = 0;
     while i < cmd.len() {
         let rest = &cmd[i..];
-        let at_start = prev.map_or(true, |p| " ;&|(\n".contains(p));
+        let at_start = prev.is_none_or(|p| " ;&|(\n".contains(p));
         if at_start && rest.starts_with("sudo ") && !rest.starts_with("sudo -A") { out.push_str("sudo -A "); i += 5; prev = Some(' '); continue; }
         let ch = rest.chars().next().unwrap(); out.push(ch); prev = Some(ch); i += ch.len_utf8();
     }
@@ -242,6 +242,7 @@ struct ModelFile {
     naam: String,
     pad: String,
     gb: f64,
+    bytes: u64,
     soort: String,
     map: String,
 }
@@ -261,6 +262,7 @@ fn list_models(dirs: Vec<String>) -> Vec<ModelFile> {
                     naam: name.trim_end_matches(".llamafile").trim_end_matches(".gguf").to_string(),
                     pad: p.to_string_lossy().to_string(),
                     gb: (size as f64 / 1e8).round() / 10.0,
+                    bytes: size,
                     soort: soort.into(),
                     map: d.clone(),
                 });
@@ -630,7 +632,7 @@ fn is_gui(word: String) -> bool {
         let Ok(rd) = fs::read_dir(&d) else { continue };
         for e in rd.flatten() {
             let p = e.path();
-            if p.extension().map_or(true, |x| x != "desktop") { continue; }
+            if p.extension().is_none_or(|x| x != "desktop") { continue; }
             let Ok(t) = fs::read_to_string(&p) else { continue };
             if t.lines().any(|l| l.trim() == "Terminal=true") { continue; }
             for l in t.lines() {
@@ -669,8 +671,8 @@ async fn download_naar(app: &tauri::AppHandle, id: &str, url: &str, map: &Path, 
     if name.is_empty() || name.contains('/') || name.starts_with('.') || name.contains("..") { return Err("bad file name".into()); }
     if !map.starts_with(home()) || map.components().any(|c| c == std::path::Component::ParentDir) { return Err("downloads only go inside your home folder".into()); }
     let id = id.to_string();
-    fs::create_dir_all(&map).map_err(|e| e.to_string())?;
-    let doel = map.join(&name);
+    fs::create_dir_all(map).map_err(|e| e.to_string())?;
+    let doel = map.join(name);
     let part = map.join(format!("{name}.part"));
     let start = fs::metadata(&part).map(|m| m.len()).unwrap_or(0);
     let client = reqwest::Client::builder().user_agent("DBash").connect_timeout(Duration::from_secs(20)).build().map_err(|e| e.to_string())?;

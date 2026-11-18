@@ -4,6 +4,8 @@ The release workflow uses the section of a version as its release notes, and DBa
 
 ## 0.4.3
 
+- **Model updates are real now.** DBash remembers which Hugging Face repository a model came from and compares your file with the one there. It only reports an update when the file is really different, and it names the model. UPDATE downloads the new file and moves the old one to old/. Before, it compared the wrong dates and showed "1 update found" for no reason.
+- Clean-up: the app logic is split into small files (src/js/README.md), the last Dutch section titles are English, and the backend passes clippy.
 - **DBash checks for a new version at every start**, not once a day. Say no once, and it does not ask again for that version (type `update` to get it later).
 - **A plain hello gets a plain hello.** The AI no longer starts about Debian when you greet it. In the Free role it is a general assistant for any question; commands only come when you want something done on your PC.
 

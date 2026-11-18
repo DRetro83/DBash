@@ -7,7 +7,7 @@ import base64, pathlib, re
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / 'src'
 html = (SRC / 'index.html').read_text(encoding='utf8')
-versie = re.search(r"const DBASH_VERSIE='([^']+)'", (SRC / 'js/app.js').read_text(encoding='utf8')).group(1)
+versie = re.search(r"const DBASH_VERSIE='([^']+)'", (SRC / 'js/core.js').read_text(encoding='utf8')).group(1)
 
 def fonts_inline(css_path):
     css = css_path.read_text(encoding='utf8')

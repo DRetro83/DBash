@@ -171,7 +171,7 @@
       const oud = laadModellen();
       const nieuw = files.map(f => {
         const o = oud.find(x => x.naam === f.naam) || {};
-        return { ...o, naam: f.naam, gb: f.gb, pad: f.pad, type: f.soort, map: f.map, datum: o.datum || Date.now(), bron: MOZILLA.test(f.naam) ? 'mozilla' : 'manual' };
+        return { ...o, naam: f.naam, gb: f.gb, bytes: f.bytes, pad: f.pad, type: f.soort, map: f.map, datum: o.datum || Date.now(), bron: herkomst({ naam: f.naam, type: f.soort }) ? 'hf' : 'manual' };
       });
       schrijfModellen(nieuw);
       if (nieuw.length && !nieuw.some(m => m.naam === S.model)) { S.model = nieuw[0].naam; bewaar() }
@@ -183,6 +183,65 @@
   window.voegModelBestandToe = function (file) {
     regel('＋ Copy ' + file.name + ' into ' + S.mmap + ' (for example with Dolphin). DBash then finds it automatically after ⟳.', 'l-sys');
   };
+  /* ---------- 2d. model updates: compare your file with the same file on Hugging Face ---------- */
+  // where a model came from: downloaded with hf (remembered), the get-models script (.name.source), or a Mozilla.ai llamafile
+  const BRONNEN = {};
+  function herkomst(m) {
+    const b = (S.modelBron || {})[m.naam] || BRONNEN[m.naam];
+    if (b) return b;
+    if (m.type === 'llamafile' && MOZILLA.test(m.naam)) return { repo: HF_REPO, pad: m.naam + '.llamafile' };
+    return null;
+  }
+  async function leesBronBestanden() {
+    const d = (S.mmap || '~/DBash/Models').replace(/^~/, '$HOME').replace(/\/$/, '').replace(/"/g, '');
+    const o = await T('run_command', { cmd: 'for f in "' + d + '"/.*.source; do [ -f "$f" ] && printf "%s\\t%s\\n" "$(basename "$f")" "$(head -c 300 "$f")"; done', detachAfter: null, password: null }).catch(() => null);
+    ((o && o.stdout) || '').split('\n').forEach(l => {
+      const [f, bron] = l.split('\t'); if (!f || !bron) return;
+      const naam = f.replace(/^\./, '').replace(/\.source$/, '').replace(/\.(gguf|llamafile)$/i, '');
+      const m = /^([\w.-]+\/[\w.-]+)\/(.+)$/.exec(bron.trim()); if (m) BRONNEN[naam] = { repo: m[1], pad: m[2] };
+    });
+  }
+  window.modelUpdates = async function (ms) {
+    let gevonden = 0, gecheckt = 0, fouten = 0; const bomen = {};
+    if (S.mupd === 'off') return { gevonden, gecheckt, fouten };
+    await leesBronBestanden();
+    for (const m of ms) {
+      const b = herkomst(m); m.gecheckt = Date.now();
+      if (!b) { m.update = null; m.bron = 'manual'; continue }
+      m.bron = 'hf';
+      try {
+        if (!bomen[b.repo]) bomen[b.repo] = await hfJSON(hfBase() + '/api/models/' + b.repo + '/tree/main?recursive=1');
+        const f = bomen[b.repo].find(x => x.path === b.pad); gecheckt++;
+        const groot = f && ((f.lfs && f.lfs.size) || f.size);
+        if (f && groot && m.bytes && groot !== m.bytes) { m.update = 'a different file on Hugging Face (' + gb(m.bytes) + ' → ' + gb(groot) + ')'; m.hfUpd = { repo: b.repo, pad: b.pad, size: groot }; gevonden++ }
+        else { m.update = null; m.hfUpd = null }
+      } catch (e) { fouten++ }
+    }
+    nieuweModellen = [];
+    return { gevonden, gecheckt, fouten };
+  };
+  // UPDATE: the old file goes to old/ first (so you can go back), then the new one is downloaded
+  window.updateModel = async function (naam) {
+    const m = laadModellen().find(x => x.naam === naam); if (!m || !m.hfUpd || !m.pad) { regel('No update information for ' + naam + '. Click ⟳ at Models first.', 'l-warn'); return }
+    const bestand = m.pad.split('/').pop(), map = m.pad.slice(0, -bestand.length - 1);
+    const a = await vraagJN('Update ' + naam + ' (' + gb(m.hfUpd.size) + ' from ' + m.hfUpd.repo + ')? The old file goes to old/. [y/N] ', { keys: [...JA, ...NEE], def: 'n' });
+    if (!JA.includes(a)) { regel('   not updated', 'l-sys'); return }
+    const vrij = await schijfVrij(map); if (vrij !== null && vrij < m.hfUpd.size + 2e9) { regel('✗ Not enough free space (' + gb(vrij) + ' free).', 'l-err'); return }
+    const mv = await T('run_command', { cmd: 'mkdir -p ' + shq(map + '/old') + ' && mv -f ' + shq(m.pad) + ' ' + shq(map + '/old/' + bestand), detachAfter: null, password: null }).catch(e => ({ code: 1, stderr: String(e) }));
+    if (mv.code !== 0) { regel('✗ Could not move the old file to old/: ' + (mv.stderr || '').trim(), 'l-err'); return }
+    const url = hfBase() + '/' + m.hfUpd.repo + '/resolve/main/' + m.hfUpd.pad.split('/').map(encodeURIComponent).join('/') + '?download=true';
+    const ok = await dlMetBalk(url, bestand);
+    if (!ok) {
+      await T('run_command', { cmd: 'mv -f ' + shq(map + '/old/' + bestand) + ' ' + shq(m.pad), detachAfter: null, password: null }).catch(() => {});
+      regel('   The old version is back in place.', 'l-sys'); return;
+    }
+    regel('✓ ' + naam + ' updated. The old version is in ' + map + '/old/ (delete it to free ' + gb(m.bytes || 0) + ').', 'l-ok');
+    await scanModellen(false); zetModel(naam, x => { x.update = null; x.hfUpd = null; x.gecheckt = Date.now() });
+    if (S.model === naam && aiKlaar) { const b = await vraagJN('Reload the AI with the new version now? [Y/n] ', { keys: [...JA, ...NEE], def: 'y' }); if (JA.includes(b)) wisselModel(naam) }
+    toonLijst();
+  };
+  window.activeerUpdate = () => {};
+
   const oudeCheck = window.checkUpdates;
   // once: tell people where the model downloads are
   setTimeout(() => { if (!S.hfTip && laadModellen().length) { S.hfTip = true; bewaar(); regel('Tip: type  hf  for the best and newest models for your GPU (also in ⚙ → AI → ⤓ GET MODELS).', 'l-sys') } }, 4000);

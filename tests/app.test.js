@@ -95,11 +95,12 @@ function nepBackend(log) {
           case 'pty_run': pty(a.cmd); return null;
           case 'is_command': return ['pwd', 'ls', 'cd', 'mkdir'].includes(a.word);
           case 'is_gui': return false;
-          case 'list_models': return [];
+          case 'list_models': return w.NEP_MODELLEN || [];
           case 'detect_browsers': return [];
           case 'sudo_needs_password': return true;
           case 'model_status': return { running: false, ready: false, log_tail: '' };
           case 'fetch_url': {
+            if (/\/api\/models\/me\/model\/tree/.test(a.url)) return { status: 200, url: a.url, content_type: 'application/json', body: JSON.stringify([{ type: 'file', path: 'Good-Model-Q4.gguf', size: 135, lfs: { size: w.NEP_GROOTTE || 1000 } }]) };
             if (/releases\/latest/.test(a.url)) return { status: 200, url: a.url, content_type: 'application/json', body: JSON.stringify(w.NEP_RELEASE || { tag_name: 'v0.4.0', assets: [] }) };
             return { status: 404, url: a.url, content_type: '', body: '' };
           }
@@ -186,4 +187,19 @@ test('loading screen: shows the checks, then goes away; a key skips it', async (
   assert.ok(!b.d.getElementById('splash'), 'a key closes it');
   assert.strictEqual(b.d.getElementById('in').value, '', 'the key does not land in the prompt');
   assert.deepStrictEqual(fouten.concat(b.fouten), []);
+});
+
+test('app mode: a model update is only reported when the file on Hugging Face is really different', async () => {
+  const log = [];
+  const { w, d, fouten } = maak(nepBackend(log), { modelBron: { 'Good-Model-Q4': { repo: 'me/model', pad: 'Good-Model-Q4.gguf' } }, updstart: false });
+  w.NEP_MODELLEN = [{ naam: 'Good-Model-Q4', pad: '/home/tester/DBash/Models/Good-Model-Q4.gguf', gb: 0, bytes: 1000, soort: 'gguf', map: '~/DBash/Models' },
+                    { naam: 'My-Own-Model', pad: '/home/tester/DBash/Models/My-Own-Model.gguf', gb: 0, bytes: 5, soort: 'gguf', map: '~/DBash/Models' }];
+  await wacht(1200);
+  await typ(w, d, 'updates'); await wacht(600);
+  assert.match(tekst(d), /Everything is up to date \(1 checked\)/, 'same size: no update, and your own model is not checked');
+  w.NEP_GROOTTE = 2000;
+  await typ(w, d, 'updates'); await wacht(600);
+  assert.match(tekst(d), /Model update: Good-Model-Q4 · a different file on Hugging Face/);
+  assert.ok(!/My-Own-Model ·/.test(tekst(d)));
+  assert.deepStrictEqual(fouten, []);
 });
