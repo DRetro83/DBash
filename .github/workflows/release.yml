@@ -1,9 +1,15 @@
 name: Release
 # Push a tag like v0.4.1 and this builds the AppImage, the standalone dbash-<version>.sh and
 # SHA256SUMS, and puts them in a GitHub release. DBash's self-update reads that release.
+# It also runs when you publish a release on the website (Releases -> Draft a new release).
 on:
   push:
     tags: ['v*.*.*']
+  release:
+    types: [published]
+
+concurrency:
+  group: release-${{ github.ref_name }}
 
 permissions:
   contents: write
