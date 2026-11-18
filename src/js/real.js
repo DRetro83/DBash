@@ -884,7 +884,7 @@
     if (JA.includes(b)) { regel('↻ Restarting…', 'l-sys'); T('restart_into', { path: nieuw }).catch(e => regel('✗ ' + e, 'l-err')) }
     else regel('   The new version starts the next time you open DBash.', 'l-sys');
   };
-  setTimeout(() => { if (S.appupd !== false && S.wizardKlaar && Date.now() - (S.updLaatst || 0) > 20 * 3600 * 1000) dbashUpdate(false) }, 7000);
+  setTimeout(() => { if (S.appupd !== false && S.wizardKlaar) dbashUpdate(false) }, 5000);   // at every start: one small request to GitHub
 
   S.frame = 'kaal'; pasToe();          // KDE draws the window frame
   zetPrompt();

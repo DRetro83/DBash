@@ -2,6 +2,11 @@
 
 The release workflow uses the section of a version as its release notes, and DBash shows the first lines when it offers an update. Keep them short.
 
+## 0.4.3
+
+- **DBash checks for a new version at every start**, not once a day. Say no once, and it does not ask again for that version (type `update` to get it later).
+- **A plain hello gets a plain hello.** The AI no longer starts about Debian when you greet it. In the Free role it is a general assistant for any question; commands only come when you want something done on your PC.
+
 ## 0.4.2
 
 - **Tab completes file and folder names**, like in Konsole: `cd Dow` + Tab → `cd Downloads/`.

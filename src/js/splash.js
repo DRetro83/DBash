@@ -79,7 +79,7 @@
       if (l.actief && l.nu) return [true, 'lesson ' + l.nu + ' still open · learn ' + l.nu];
       return [true, (l.klaar || []).length + ' of ' + N + ' done'];
     }],
-    ['Updates', async () => [true, S.appupd === false ? 'off' : 'checked once a day']]
+    ['Updates', async () => [true, S.appupd === false ? 'off' : 'checked at every start']]
   ];
 
   (async function () {

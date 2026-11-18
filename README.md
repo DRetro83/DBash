@@ -85,7 +85,7 @@ The lessons are plain data in [`src/js/lessons.js`](src/js/lessons.js). Every ch
 - **🧠 AI memory.** DBash shows how full the chat is (MEM %). Old output is trimmed first, and older messages are summarized.
 - **📖 Command book.** A cheat sheet for Debian, Ubuntu and Arch, plus your own commands, aliases and what you learned.
 - **🌐 Web search per chat.** This is off by default. Sources are listed, and links the AI made up are marked ⚠.
-- **⇪ Updates itself.** Once a day, DBash checks GitHub for a new version. It only installs one after you answer `y`, and only when the sha256 checksum matches.
+- **⇪ Updates itself.** At every start, DBash checks GitHub for a new version. It only installs one after you answer `y`, and only when the sha256 checksum matches.
 - **▒ Retro look.** Pixel themes (Green, Amber, C64, IBM Blue…) and CRT effects. The fonts are built in, so nothing loads from the internet.
 
 ## 🔒 Safety first

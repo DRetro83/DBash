@@ -628,3 +628,8 @@ Overslaan mag. Opnieuw starten kan via `wizard` of ⚙ → AI → SETUP WIZARD.
   - Alle 13 lessen draaien in de test echt in bash.
 - **Aanbevolen modellen** komen uit `data/models.json` in de repository. DBash controleert elk veld; klopt er iets niet, dan gebruikt hij de ingebouwde lijst.
 - **De repository heet nu DRetro83/DBash.** Oudere versies, die nog DBach gebruiken, vinden de updates via de doorverwijzing van GitHub.
+
+## 12aa. Versie 0.4.3 (in voorbereiding)
+- **Een gewone "hallo" krijgt een gewone "hallo".** De AI krijgt niet meer als eerste zin "You are a Debian Linux assistant". Hij is nu de assistent in DBash op je eigen pc. Bij een begroeting of een praatje antwoordt hij kort, zonder commando's en zonder over Debian te beginnen.
+- **De rol Free** is een algemene assistent voor elke vraag. Commando's komen alleen als je iets op je pc wilt laten doen.
+- **Update-check bij elke start** in plaats van één keer per dag. Zeg je "not now", dan vraagt DBash het voor die versie niet opnieuw. Met `update` kijk je meteen.
