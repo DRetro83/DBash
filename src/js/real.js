@@ -287,6 +287,7 @@
   window.voerUit = async function (c, bevestigd = false, echtOk = false) {
     if (!c) return;
     { const ex = expandAlias(c); if (ex && ex.cmd !== c) { regel('⚡ ' + ex.a.n + ' → ' + ex.cmd, 'l-tl'); c = ex.cmd } }
+    { const w = c.trim().split(/\s+/)[0], a = (window.BASH_ALIASSEN || {})[w]; if (a && a.split(/\s+/)[0] !== w) { const ex = window.zonderBashAlias(c); regel('⚡ ' + w + ' → ' + ex + '   (your alias in ~/.bash_aliases)', 'l-tl'); c = ex } }
     { const ph = plekhouder(c); if (ph) { inp.value = '!' + c; inp.focus(); inp.setSelectionRange(ph[0] + 1, ph[1] + 1); regel('✎ Fill in the selected part first (your real disk or name). The command is in the prompt for you.' + (window.SCHIJF_INFO ? '\n   Your disks: ' + window.SCHIJF_INFO : ''), 'l-warn'); return null } }
     { const zp = c.replace(/\s*\|\s*(less|more|most)(\s+-\w+)*\s*$/, ''); if (zp !== c) { regel('   (removed "| ' + c.match(/\|\s*(less|more|most)/)[1] + '": DBash shows long output in a fold you can open)', 'l-sys'); c = zp } }
     if (isScherm(c) && !PTY.klaar) { regel('⚠ "' + c + '" is a full-screen program, and the DBash terminal is not ready. Open it in Konsole.', 'l-warn'); return null }
@@ -791,6 +792,7 @@
     const heeftArgs = w.slice(1).some(x => /^[-/~.$]|[=/|<>]|^\d/.test(x));
     if (GEWONE_WOORDEN.test(eerste) && w.length > 1 && !heeftArgs) return false;  // "find me a recipe"
     if (w.length > 6 && !heeftArgs) return false;            // a sentence
+    if (window.BASH_ALIASSEN[eerste]) return true;                  // one of your own aliases
     if (!(eerste in cmdCache)) cmdCache[eerste] = await T('is_command', { word: eerste }).catch(() => false);
     return cmdCache[eerste];
   }
@@ -805,6 +807,44 @@
     window.VAN_INVOER = false;
     return origVraag(q, ...rest);
   };
+
+  /* ---------- 7g. Tab: file and folder names, like bash (compgen in the folder you are in) ---------- */
+  const shq = t => "'" + String(t).replace(/'/g, "'\\''") + "'";
+  const esc = n => n.replace(/([ '"()&;|<>$`!*?\[\]{}\\#])/g, '\\$1');           // My Docs → My\ Docs
+  window.tabBestanden = async function (v) {
+    const m = /(?:^|[^\\]\s)((?:\\.|[^\s])*)$/.exec(v); const ruw = m ? m[1] : v;  // the last word as typed
+    const w = ruw.replace(/\\(.)/g, '$1');                                     // without the backslashes
+    const eersteWoord = !/\s/.test(v.replace(/\\\s/g, ''));
+    const naarMap = window.HUIDIGE_MAP ? 'cd ' + shq(window.HUIDIGE_MAP) + ' 2>/dev/null; ' : '';
+    const lijst = eersteWoord && !/^[~./]/.test(w) ? 'compgen -c -- ' + shq(w) + ' | sort -u' : 'compgen -f -- ' + shq(w) + ' | sort';
+    const cmd = naarMap + lijst + ' | head -300 | while IFS= read -r f; do d="${f/#\\~/$HOME}"; if [ -d "$d" ]; then printf "%s/\\n" "$f"; else printf "%s\\n" "$f"; fi; done';
+    const o = await T('run_command', { cmd, detachAfter: null, password: null }).catch(() => null);
+    let namen = o && o.code === 0 ? (o.stdout || '').split('\n').filter(Boolean) : [];
+    if (!/^\./.test(w.split('/').pop())) namen = namen.filter(n => !/^\./.test(n.replace(/\/$/, '').split('/').pop()) || namen.length < 3);  // hide dot files unless asked
+    if (!namen.length) return false;
+    const toon = namen.map(n => { const d = n.replace(/\/$/, '').split('/').pop(); return d + (n.endsWith('/') ? '/' : '') });
+    const ok = tabKies(v, ruw, namen.map(esc), toon);
+    if (ok && namen.length === 1 && !namen[0].endsWith('/') && !eersteWoord) inp.value += ' ';
+    if (ok && namen.length === 1 && eersteWoord && !namen[0].endsWith('/')) inp.value += ' ';
+    groei(); return ok;
+  };
+
+  /* ---------- 7h. your own aliases from ~/.bash_aliases: they work, and their risk label follows what they do ---------- */
+  window.BASH_ALIASSEN = {};
+  async function leesBashAliassen() {
+    const o = await T('run_command', { cmd: 'shopt -s expand_aliases; [ -f ~/.bash_aliases ] && . ~/.bash_aliases >/dev/null 2>&1; alias', detachAfter: null, password: null }).catch(() => null);
+    const a = {};
+    ((o && o.stdout) || '').split('\n').forEach(l => { const m = /^alias ([\w.+-]+)='(.*)'$/.exec(l.trim()); if (m) a[m[1]] = m[2].replace(/'\\''/g, "'") });
+    window.BASH_ALIASSEN = a;
+  }
+  leesBashAliassen();
+  const zonderAlias = c => { const w = c.trim().split(/\s+/); const a = window.BASH_ALIASSEN[w[0]]; return a ? a + c.trim().slice(w[0].length) : c };
+  const origRisico = window.risico, RANG = { safe: 0, sudo: 1, danger: 2 };
+  window.risico = function (c) {
+    const r1 = origRisico(c), c2 = zonderAlias(c); if (c2 === c) return r1;
+    const r2 = origRisico(c2); return (RANG[r2] || 0) > (RANG[r1] || 0) ? r2 : r1;
+  };
+  window.zonderBashAlias = zonderAlias;
 
   /* ---------- 8. small things ---------- */
   // a quiet shell command for DBash itself (lesson checks and practice files); not shown, not logged

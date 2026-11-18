@@ -2,6 +2,14 @@
 
 The release workflow uses the section of a version as its release notes, and DBash shows the first lines when it offers an update. Keep them short.
 
+## 0.4.2
+
+- **Tab completes file and folder names**, like in Konsole: `cd Dow` + Tab → `cd Downloads/`.
+- **Your own aliases** from `~/.bash_aliases` work in DBash. Their risk label follows what they really do, so an alias with sudo still asks first.
+- **3 new lessons:** 11 Network, 12 Archives (tar, gzip), 13 SSH and keys.
+- **The list of recommended models** now comes from the DBash repository (`data/models.json`), so it can change without a new version.
+- Lesson 9: the process checks wait a moment.
+
 ## 0.4.1
 
 - **Loading screen:** a big pixel logo and a short list of real checks at start (terminal, AI engine, model, backup, lessons, updates). Things that are missing show [ !! ], such as no model yet. Any key skips it, and ⚙ → LOOK turns it off.

@@ -2,8 +2,8 @@
    Runs in a normal browser as a preview (see demo.js) and inside the DBash app, where real.js
    replaces the simulated parts with the real backend (src-tauri/src/main.rs).
    Note: most names in the code are Dutch (regel = line, voerUit = run, vraagAI = ask the AI). */
-const DBASH_VERSIE='0.4.1';
-const DBASH_REPO='DRetro83/DBach';   // GitHub owner/repo: used for "update DBash" (change it here if the repo moves)
+const DBASH_VERSIE='0.4.2';
+const DBASH_REPO='DRetro83/DBash';   // GitHub owner/repo: used for "update DBash" (change it here if the repo moves)
 const $=id=>document.getElementById(id);
 const out=$('out');
 
@@ -546,7 +546,7 @@ const ROLLEN={
     regel:' AI ROLE: EXPLAIN. The user wants to learn by watching. Still give the commands in ```bash blocks, but after each block explain the command part by part in a short list (every word and option: what it does), and say what to look for in its output.'},
   coach:{naam:'COACH',titel:'Coach',uitleg:'The AI explains briefly, then YOU type the command. DBash runs what you type and the AI checks it: well done, or a hint when it goes wrong. SHOW ME gives the answer.',
     regel:' AI ROLE: COACH. The user wants to learn to use Linux by doing it himself. Explain the idea in 2 to 4 short sentences, then ask the user to type the command himself in the DBash prompt. Do NOT give the full command in a ```bash block: give it as inline code with the key part left blank (for example `sudo apt ____ vlc`) and a small hint. When the user asks for the answer or says show me, give the full command in a ```bash block. When you get a COACH CHECK with the output of a command the user typed, say in at most 3 short sentences whether it was right, what it did and one tip; if it went wrong, give a hint, not the answer.'},
-  teacher:{naam:'TEACHER',titel:'Teacher',uitleg:'Fixed lessons in order (moving around, files, permissions, packages, services, logs, processes, scripts). DBash shows every step, checks your exercise itself and keeps your progress; the AI explains and gives hints. Practice happens in ~/DBash/Learn. Works without AI too.',
+  teacher:{naam:'TEACHER',titel:'Teacher',uitleg:'Fixed lessons in order (moving around, files, permissions, packages, services, logs, disks, processes, scripts, network, archives, SSH). DBash shows every step, checks your exercise itself and keeps your progress; the AI explains and gives hints. Practice happens in ~/DBash/Learn. Works without AI too.',
     regel:' AI ROLE: TEACHER. The user learns to use Linux in the terminal with the DBash course. Explain simply, one idea at a time, with a short example, and let the user type commands himself. Give the full command in a ```bash block only when the user asks for the answer. When you get a COACH CHECK with the output of a command the user typed, check it in at most 3 short sentences and give one tip. When no lesson is running, tell the user he can type learn to see the lessons.'}
 };
 // the lessons themselves are in lessons.js (the lesson pack); learn.js runs them
@@ -835,17 +835,30 @@ inp.addEventListener('keydown',e=>{
   if(e.key==='Tab'&&!inp.value){e.preventDefault();kiesCommando(e.shiftKey?0:-1);return}
   if(e.key==='Tab'){
     e.preventDefault();const v=inp.value;if(!v)return;
-    const pool=[...new Set([...AANVUL,...laadAlias().map(x=>x.n),...cmdHist.slice().reverse()])];
-    const m=pool.filter(x=>x.startsWith(v)&&x!==v);
-    if(m.length===1)inp.value=m[0];
-    else if(m.length>1){
-      let pre=m[0];m.forEach(x=>{while(!x.startsWith(pre))pre=pre.slice(0,-1)});
-      if(pre.length>v.length)inp.value=pre;else regel(m.slice(0,12).join('    '),'tabopties');
-    }
+    // file and folder names (in the app): after the first word, or when the word looks like a path
+    if(window.tabBestanden&&(/\s/.test(v)||/^[~./]/.test(v))){tabBestanden(v).then(ok=>{if(!ok)tabUitHistorie(v)});return}
+    tabUitHistorie(v);
     return;
   }
   if(e.key==='l'&&e.ctrlKey){e.preventDefault();wisScherm();return}
 },true);
+// Tab without file names: DBash commands, your aliases and your history
+function tabUitHistorie(v){
+  const pool=[...new Set([...AANVUL,...laadAlias().map(x=>x.n),...Object.keys(window.BASH_ALIASSEN||{}),...cmdHist.slice().reverse()])];
+  const m=pool.filter(x=>x.startsWith(v)&&x!==v);
+  tabKies(v,'',m);
+}
+// complete v with the matches m of its last word w: one match = fill in, more = common start, or show the list
+function tabKies(v,w,m,toon){
+  const basis=v.slice(0,v.length-w.length);
+  if(m.length===1){inp.value=basis+m[0];return true}
+  if(m.length>1){
+    let pre=m[0];m.forEach(x=>{while(!x.startsWith(pre))pre=pre.slice(0,-1)});
+    if(pre.length>w.length&&w!==''||(w===''&&pre.length)){inp.value=basis+pre;return true}
+    regel((toon||m).slice(0,40).join('    ')+(m.length>40?'    … '+(m.length-40)+' more':''),'tabopties');return true;
+  }
+  return false;
+}
 function groei(){inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,window.innerHeight*0.4)+'px';inp.style.overflowY=inp.scrollHeight>window.innerHeight*0.4?'auto':'hidden'}
 inp.addEventListener('input',groei);
 inp.addEventListener('keydown',async e=>{
@@ -1082,6 +1095,20 @@ const AANBEVOLEN=[
   ['Devstral Small','devstral-small',['Q4_K_M','IQ4_XS'],14.5,'best for programming'],
   ['Qwen3.5 4B','qwen3.5-4b',['Q5_K_M','Q4_K_M'],4,'small and very fast, for quick questions']];
 window.hfJSON=window.hfJSON||(async u=>{const r=await fetch(u);if(!r.ok)throw new Error('HTTP '+r.status);return r.json()});
+// The list of recommended models can also come from the DBash repository (data/models.json), so it can change
+// without a new DBash version. Anything that does not look right is ignored, and then the list above is used.
+let AANBEVOLEN_GH=null;
+async function aanbevolen(){
+  if(AANBEVOLEN_GH)return AANBEVOLEN_GH;
+  try{
+    const j=await hfJSON('https://raw.githubusercontent.com/'+DBASH_REPO+'/main/data/models.json');
+    const tekst=(x,n)=>typeof x==='string'&&x.length>0&&x.length<=n;
+    const l=(Array.isArray(j&&j.models)?j.models:[]).filter(m=>m&&tekst(m.name,40)&&tekst(m.search,60)&&/^[\w.-]+$/.test(m.search)&&Array.isArray(m.files)&&m.files.length&&m.files.every(f=>tekst(f,40)&&/^[\w.*-]+$/.test(f))&&typeof m.max_gb==='number'&&m.max_gb>0&&m.max_gb<=200)
+      .slice(0,12).map(m=>[m.name,m.search,m.files.slice(0,5),m.max_gb,tekst(m.why,100)?m.why:'']);
+    if(l.length){AANBEVOLEN_GH=l;return l}
+  }catch(e){}
+  return AANBEVOLEN;
+}
 const gb=n=>n<1e9?Math.max(1,Math.round(n/1e6))+' MB':(Math.round(n/1e8)/10)+' GB';
 const pasLabel=bytes=>{const v=vram(),g=bytes/1e9;if(!v)return['?',''];if(g<=v-1.5)return['GPU ✓','ja'];if(g<=v+((parseInt(S.sys_ram)||16)*0.6))return['part CPU','half'];return['too big','nee']};
 function hfRij(box,naam,info,knoppen,extra){const k=regel('','l-sys');const r=document.createElement('div');r.className='hfrij';
@@ -1148,7 +1175,8 @@ async function hfBeste(){
   if(window.engineInfo){const e=await engineInfo();let tag='';try{tag=(await hfJSON(ghBase()+'/repos/mozilla-ai/llamafile/releases/latest')).tag_name||''}catch(x){}
     const nieuwer=tag&&e.versie&&tag.replace(/^v/,'')!==e.versie;
     hfRij(null,'⚙ llamafile engine',e.heeft?'you have '+(e.versie||'?')+(tag?' · newest '+tag:''):'missing (needed for .gguf)',[[e.heeft&&!nieuwer?'✓ OK':'⤓ '+(e.heeft?'UPDATE':'DOWNLOAD'),()=>hfEngine(),e.heeft&&!nieuwer]])}
-  for(const[n,w,pats,max,u] of AANBEVOLEN){
+  const lijst=await aanbevolen();if(lijst!==AANBEVOLEN)regel('   (the list comes from github.com/'+DBASH_REPO+', data/models.json)','l-sys');
+  for(const[n,w,pats,max,u] of lijst){
     const r=await hfVind(w,pats,max);
     const x=document.createElement('span');x.className='hd';x.textContent=u;
     if(!r){hfRij(null,n,'not found right now',[],x);continue}

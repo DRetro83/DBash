@@ -31,6 +31,7 @@ test('lesson pack is complete and consistent', () => {
       if (c.typed) assert.match(s.answer, new RegExp(c.typed), `${ws}: the answer does not pass its own typed check`);
       if (c.shell) assert.ok(!/\bsudo\b/.test(c.shell), `${ws}: checks never use sudo`);
     });
+    (L.requires || []).forEach(r => assert.ok(Array.isArray(r) && /^[\w.+-]+$/.test(r[0]) && /^[\w.+-]+$/.test(r[1]), `${w}: requires is [command, package]`));
     assert.ok(L.quiz.length >= 3, `${w}: quiz`);
     L.quiz.forEach((q, i) => assert.ok(q.options[q.answer] !== undefined && q.why, `${w} quiz ${i + 1}`));
     assert.ok(L.cheatsheet.length >= 4, `${w}: cheat sheet`);
@@ -39,7 +40,7 @@ test('lesson pack is complete and consistent', () => {
 });
 
 // steps that need root, the network, a full-screen program or a desktop: not run here
-const NIET_HIER = /^(sudo|apt|apt-cache|dpkg|cowsay|less|journalctl|systemctl|dmesg|lsblk|findmnt)\b|\/etc\/fstab/;
+const NIET_HIER = /^(sudo|apt|apt-cache|dpkg|cowsay|less|journalctl|systemctl|dmesg|lsblk|findmnt|ping|nmcli|curl)\b|\/etc\/fstab/;
 // a full-screen editor step: the test writes the file itself
 const VERVANG = { 'nano greet.sh': 'printf \'#!/bin/bash\\nname="$1"\\necho "Hello, $name!"\\n\' > greet.sh' };
 
@@ -56,7 +57,8 @@ function shell(home) {
 }
 
 for (const [n, L] of PAK.lessons.entries()) {
-  test(`lesson ${n + 1} (${L.title}) works for real`, async () => {
+  const ontbreekt = (L.requires || []).map(r => r[0]).filter(c => spawnSync('bash', ['-c', 'command -v ' + c]).status !== 0);
+  test(`lesson ${n + 1} (${L.title}) works for real`, { skip: ontbreekt.length ? 'needs ' + ontbreekt.join(', ') + ' (CI has it)' : false }, async () => {
     const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dbash-les-'));
     const env = { HOME: home, PATH: process.env.PATH, USER: 'tester' };
     if (L.setup) { const r = spawnSync('bash', ['-c', 'mkdir -p "$HOME/DBash/Learn" && ' + L.setup], { env }); assert.strictEqual(r.status, 0, 'setup: ' + r.stderr) }

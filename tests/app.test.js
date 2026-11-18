@@ -175,7 +175,7 @@ test('loading screen: shows the checks, then goes away; a key skips it', async (
   const rijen = [...d.querySelectorAll('#splash .sprij')].map(r => r.textContent);
   assert.strictEqual(rijen.length, 6, rijen.join(' | '));
   assert.match(rijen[0], /\[ OK \]Terminal/);
-  assert.match(rijen[4], /Lessons0 of 10 done/);
+  assert.match(rijen[4], /Lessons0 of \d+ done/);
   await wacht(1400);
   assert.ok(!d.getElementById('splash'), 'it closes by itself');
 

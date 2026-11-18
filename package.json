@@ -1,6 +1,6 @@
 {
   "name": "dbash",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "private": true,
   "description": "DBash: a smart Debian terminal with a local AI that helps you learn Linux",
   "license": "MIT",

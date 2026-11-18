@@ -1,0 +1,10 @@
+{
+  "about": "The models DBash recommends (type hf in DBash). DBash looks each one up on Hugging Face when you ask: the most downloaded trusted uploader, the first file pattern that exists, not bigger than max_gb (GB, for a 16 GB GPU). Change this file and every DBash sees the new list, without a new version.",
+  "models": [
+    { "name": "Gemma 4 26B-A4B", "search": "gemma-4-26b-a4b-it", "files": ["qat.*q4_0", "IQ4_XS", "Q4_K_M"], "max_gb": 14.5, "why": "newest all-rounder, fast (MoE), strong for its size" },
+    { "name": "gpt-oss 20B", "search": "gpt-oss-20b", "files": ["mxfp4", "Q4_K_M"], "max_gb": 14.5, "why": "reasoning and tools, fast (MoE)" },
+    { "name": "Qwen3 14B", "search": "qwen3-14b", "files": ["Q5_K_M", "Q4_K_M"], "max_gb": 11.5, "why": "dense model, leaves room for a long chat" },
+    { "name": "Devstral Small", "search": "devstral-small", "files": ["Q4_K_M", "IQ4_XS"], "max_gb": 14.5, "why": "best for programming" },
+    { "name": "Qwen3.5 4B", "search": "qwen3.5-4b", "files": ["Q5_K_M", "Q4_K_M"], "max_gb": 4, "why": "small and very fast, for quick questions" }
+  ]
+}

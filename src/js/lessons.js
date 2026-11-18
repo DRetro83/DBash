@@ -381,6 +381,101 @@ window.DBASH_LESSONS = {
       { q: 'Which line sets a variable correctly?', options: ['name = Anna', 'name=Anna', '$name=Anna'], answer: 1, why: 'No spaces around =, and no $ when you set it.' }
     ],
     cheatsheet: [['name=VALUE', 'set a variable (no spaces around =)'], ['echo "Hi $name"', 'use a variable'], ['for x in a b c; do …; done', 'repeat for every item'], ['if [ -f FILE ]; then …; fi', 'only when a test is true (-d = folder)'], ['nano FILE', 'edit a file (Ctrl+O save, Ctrl+X close)'], ['#!/bin/bash', 'first line of a bash script'], ['$1', 'the first word given to a script']]
+  },
+  /* ------------------------------------------------------------------ 11 */
+  {
+    id: 'network',
+    title: 'Network',
+    topics: 'hostname, ip -br a, ip route, ping, /etc/resolv.conf, ss -tulpn, nmcli, curl -I',
+    intro: 'Is my PC online? Which address does it have? Which programs listen on the network? This lesson only reads: nothing changes.',
+    setup: '',
+    steps: [
+      { title: 'The name of your PC', explain: 'Every computer on a network has a name, the **hostname**. It is also in your prompt, after the @.',
+        task: '`hostname`', answer: 'hostname', check: { typed: '^hostname$' }, hint: 'hostname', done: 'Other PCs on your network can often find yours by this name.' },
+      { title: 'Your addresses', explain: '`ip` shows and changes the network. `ip -br a` gives a *brief* list of every network card and its **address**: `lo` is the loopback (the PC talking to itself, 127.0.0.1), and names like `enp5s0` or `wlp3s0` are your cable or Wi-Fi.',
+        task: '`ip -br a`', answer: 'ip -br a', check: { typed: '^ip\\s+(-\\w+\\s+)*a(ddr(ess)?)?\\b', out: '127\\.0\\.0\\.1' }, hint: 'ip -br a', done: 'UP = connected. Addresses like 192.168.x.x are only valid inside your home network.' },
+      { title: 'The way out', explain: '`ip route` shows where network traffic goes. The **default via** line is your router: everything to the internet goes through it.',
+        task: '`ip route`', answer: 'ip route', check: { typed: '^ip\\s+r(oute)?\\b' }, hint: 'ip route', done: 'No default line = no way to the internet.' },
+      { title: 'Can I reach it?', explain: '`ping` sends a few small packets and measures how long the answer takes, in milliseconds. `-c 3` = 3 times, else it goes on until Ctrl+C.',
+        task: '`ping -c 3 debian.org`', answer: 'ping -c 3 debian.org', check: { typed: '^ping\\b.*-c\\s*\\d', ok: null }, hint: 'ping -c 3 debian.org', done: '0% packet loss = the connection works. "Name or service not known" = a name (DNS) problem, not a cable problem.' },
+      { title: 'Names into addresses', explain: 'DNS turns names like debian.org into addresses. /etc/resolv.conf says which DNS server your PC asks. 127.0.0.53 means a helper on your own PC (systemd-resolved) asks for you.',
+        task: '`cat /etc/resolv.conf`', answer: 'cat /etc/resolv.conf', check: { typed: '^cat\\s+/etc/resolv\\.conf', out: 'nameserver' }, hint: 'cat /etc/resolv.conf', done: 'Ping works with an address but not with a name? Then look here.' },
+      { title: 'Who is listening?', explain: '`ss` shows network connections. `-tulpn` = TCP and UDP, only *listening*, with numbers and the program. Every line is a door that is open to the network.',
+        task: '`ss -tulpn`', answer: 'ss -tulpn', check: { typed: '^ss\\b' }, hint: 'ss -tulpn', done: 'Addresses with 127.0.0.1 only listen on your own PC; 0.0.0.0 or * listen on the whole network. sudo ss -tulpn also shows the program names of system services.' },
+      { title: 'NetworkManager', explain: 'On most desktops NetworkManager handles cable and Wi-Fi. `nmcli` is its command line: the same as the network icon in your panel.',
+        task: '`nmcli device status`', answer: 'nmcli device status', check: { typed: '^nmcli\\b', ok: null }, hint: 'nmcli device status', done: '`nmcli device wifi list` shows the Wi-Fi networks around you.' },
+      { title: 'Is a website up?', explain: '`curl` fetches a web address. `-I` asks only for the *headers*: the first line has the status code, 200 = OK, 301/302 = moved, 404 = not found.',
+        task: '`curl -I https://www.debian.org`', answer: 'curl -I https://www.debian.org', check: { typed: '^curl\\s+(-\\w*I\\w*|--head)\\b', ok: null }, hint: 'curl -I https://www.debian.org', done: 'Now you can check a connection step by step: address, route, ping, DNS, website.' }
+    ],
+    quiz: [
+      { q: 'Ping to 9.9.9.9 works, ping to debian.org says "Name or service not known". Where is the problem?', options: ['the cable', 'DNS (names into addresses)', 'the website'], answer: 1, why: 'The connection works with an address, so only the name lookup fails.' },
+      { q: 'Which line of `ip route` points to your router?', options: ['the default via line', 'the lo line', 'the last line'], answer: 0, why: 'default via = where everything to the internet goes.' },
+      { q: 'What does `ss -tulpn` show?', options: ['the Wi-Fi networks around you', 'the programs that listen on the network', 'your internet speed'], answer: 1, why: 'Listening TCP/UDP ports and their program.' }
+    ],
+    cheatsheet: [['hostname', 'the name of your PC'], ['ip -br a', 'your network cards and addresses'], ['ip route', 'where traffic goes (default via = your router)'], ['ping -c 3 HOST', 'can I reach it, and how fast'], ['cat /etc/resolv.conf', 'which DNS server your PC asks'], ['ss -tulpn', 'programs that listen on the network'], ['nmcli device status', 'cable and Wi-Fi (NetworkManager)'], ['curl -I URL', 'is a website up (200 = OK)']]
+  },
+  /* ------------------------------------------------------------------ 12 */
+  {
+    id: 'archives',
+    title: 'Archives',
+    topics: 'tar -czf, tar -tzf, tar -xzf -C, gzip, gunzip, ls -lh',
+    intro: 'A .tar.gz packs many files into one smaller file: for backups, for sending, and most software downloads come like this. You pack, look inside and unpack, all in the practice folder.',
+    setup: 'L=$HOME/DBash/Learn/l12; rm -rf "$L"; mkdir -p "$L/photos"; for n in beach snow city; do head -c 40K /dev/zero > "$L/photos/$n.jpg"; done; seq 1 2000 > "$L/notes.txt"',
+    steps: [
+      { title: 'Into the practice folder', explain: 'There is a folder photos with 3 files, and a text file notes.txt.',
+        task: '`cd ~/DBash/Learn/l12`', answer: 'cd ~/DBash/Learn/l12', check: { pwd: '^~/DBash/Learn/l12$' }, hint: 'cd ~/DBash/Learn/l12', done: 'Ready.' },
+      { title: 'Pack a folder', explain: '`tar` packs files. The letters: **c** = create, **z** = compress with gzip, **f** = the file name comes next. First the new file, then what goes in it.',
+        task: '`tar -czf photos.tar.gz photos`', answer: 'tar -czf photos.tar.gz photos', check: { typed: '^tar\\s', shell: 'test -s "$HOME/DBash/Learn/l12/photos.tar.gz"' }, hint: 'tar -czf photos.tar.gz photos', done: 'One file now holds the whole folder.' },
+      { title: 'Look inside', explain: '**t** = list what is in it, without unpacking. Always do this with an archive you downloaded: then you know where its files will land.',
+        task: '`tar -tzf photos.tar.gz`', answer: 'tar -tzf photos.tar.gz', check: { typed: '^tar\\s+-?\\w*t', out: 'photos/' }, hint: 'tar -tzf photos.tar.gz', done: 'Everything is inside a folder photos/, so unpacking will not scatter files around.' },
+      { title: 'How much smaller?', explain: '`ls -lh` shows sizes in K, M and G (h = human).',
+        task: '`ls -lh`', answer: 'ls -lh', check: { typed: '^ls\\s+-\\w*l', out: 'photos\\.tar\\.gz' }, hint: 'ls -lh', done: 'These practice photos are only zeros, so they pack extremely well. Real photos hardly get smaller: they are compressed already.' },
+      { title: 'A place to unpack', explain: 'Make a separate folder, so you do not overwrite the originals.',
+        task: '`mkdir restore`', answer: 'mkdir restore', check: { shell: 'test -d "$HOME/DBash/Learn/l12/restore"' }, hint: 'mkdir restore', done: 'Empty folder ready.' },
+      { title: 'Unpack', explain: '**x** = extract. `-C FOLDER` unpacks into that folder instead of the one you are in.',
+        task: '`tar -xzf photos.tar.gz -C restore`', answer: 'tar -xzf photos.tar.gz -C restore', check: { typed: '^tar\\s+-?\\w*x', shell: 'test -f "$HOME/DBash/Learn/l12/restore/photos/beach.jpg"' }, hint: 'tar -xzf photos.tar.gz -C restore', done: 'Check with ls restore/photos. Remember: c = create, t = list, x = extract.' },
+      { title: 'Compress one file', explain: '`gzip` compresses a single file and **replaces** it with FILE.gz.',
+        task: '`gzip notes.txt`', answer: 'gzip notes.txt', check: { shell: 'cd "$HOME/DBash/Learn/l12" && test -f notes.txt.gz && test ! -e notes.txt' }, hint: 'gzip notes.txt', done: 'notes.txt is gone, notes.txt.gz is there. Logs in /var/log are often kept like this.' },
+      { title: 'And back', explain: '`gunzip` makes the normal file again. `zcat FILE.gz` shows it without unpacking.',
+        task: '`gunzip notes.txt.gz`', answer: 'gunzip notes.txt.gz', check: { shell: 'cd "$HOME/DBash/Learn/l12" && test -f notes.txt && test ! -e notes.txt.gz' }, hint: 'gunzip notes.txt.gz', done: 'For .zip files there is unzip (sudo apt install unzip if it is missing).' }
+    ],
+    quiz: [
+      { q: 'Which letter of tar unpacks?', options: ['c', 't', 'x'], answer: 2, why: 'c = create, t = list, x = extract.' },
+      { q: 'Why look inside an archive (tar -tzf) before you unpack it?', options: ['it makes unpacking faster', 'to see where the files will land', 'it is required'], answer: 1, why: 'Some archives drop many files in the folder you are in.' },
+      { q: 'What does `gzip notes.txt` do with notes.txt?', options: ['it keeps it and makes a copy', 'it replaces it with notes.txt.gz', 'it deletes it without a copy'], answer: 1, why: 'gzip replaces the file; gunzip turns it back.' }
+    ],
+    cheatsheet: [['tar -czf NEW.tar.gz FOLDER', 'pack and compress a folder'], ['tar -tzf FILE.tar.gz', 'look inside without unpacking'], ['tar -xzf FILE.tar.gz -C FOLDER', 'unpack into a folder'], ['gzip FILE', 'compress one file (replaces it)'], ['gunzip FILE.gz', 'uncompress again'], ['zcat FILE.gz', 'show a .gz file without unpacking'], ['unzip FILE.zip', 'unpack a .zip']]
+  },
+  /* ------------------------------------------------------------------ 13 */
+  {
+    id: 'ssh-keys',
+    title: 'SSH and keys',
+    topics: 'ssh -V, ssh-keygen, public and private key, fingerprint, ~/.ssh, ssh -G, ssh user@host',
+    intro: 'With SSH you work in the terminal of another computer: a server, a Raspberry Pi, a Steam Deck. Keys log you in safely without a password. You make a practice key in the practice folder; your real ~/.ssh is only read.',
+    requires: [['ssh-keygen', 'openssh-client']],
+    setup: 'L=$HOME/DBash/Learn/l13; rm -rf "$L"; mkdir -p "$L"',
+    steps: [
+      { title: 'Is SSH there?', explain: '`ssh -V` shows the version of the OpenSSH client. It is on almost every Linux PC.',
+        task: '`ssh -V`', answer: 'ssh -V', check: { typed: '^ssh\\s+-V$', ok: null, out: 'OpenSSH' }, hint: 'ssh -V  (a capital V)', done: 'The client can connect to other PCs. Accepting connections needs the server part (openssh-server).' },
+      { title: 'Make a key pair', explain: 'A key pair is two files: a **private** key that never leaves your PC, and a **public** key (.pub) that you give to servers. `-t ed25519` is the modern type, `-f` the file, and `-N ""` means no passphrase. That is only OK for this practice key: give real keys a passphrase.',
+        task: '`ssh-keygen -t ed25519 -f ~/DBash/Learn/l13/demo_key -N ""`', answer: 'ssh-keygen -t ed25519 -f ~/DBash/Learn/l13/demo_key -N ""', check: { typed: '^ssh-keygen\\b', shell: 'test -f "$HOME/DBash/Learn/l13/demo_key" && test -f "$HOME/DBash/Learn/l13/demo_key.pub"' }, hint: 'ssh-keygen -t ed25519 -f ~/DBash/Learn/l13/demo_key -N ""', done: 'Two files: demo_key (private) and demo_key.pub (public).' },
+      { title: 'Two files, two kinds of permission', explain: 'Look at the permissions from lesson 4.',
+        task: '`ls -l ~/DBash/Learn/l13`', answer: 'ls -l ~/DBash/Learn/l13', check: { typed: '^ls\\s+-\\w*l', out: 'demo_key\\.pub' }, hint: 'ls -l ~/DBash/Learn/l13', done: 'The private key is -rw------- (only you). ssh refuses a private key that others can read.' },
+      { title: 'The public key', explain: 'The public key is one line of text. This is what you paste into a server or into GitHub (Settings → SSH keys). It is safe to share.',
+        task: '`cat ~/DBash/Learn/l13/demo_key.pub`', answer: 'cat ~/DBash/Learn/l13/demo_key.pub', check: { typed: '^cat\\b.*demo_key\\.pub', out: 'ssh-ed25519 ' }, hint: 'cat ~/DBash/Learn/l13/demo_key.pub', done: 'Never cat and share the file without .pub: that is the private key.' },
+      { title: 'The fingerprint', explain: 'A fingerprint is a short checksum of a key. When you connect to a new server, ssh shows *its* fingerprint and asks if you trust it.',
+        task: '`ssh-keygen -lf ~/DBash/Learn/l13/demo_key.pub`', answer: 'ssh-keygen -lf ~/DBash/Learn/l13/demo_key.pub', check: { typed: '^ssh-keygen\\s+-\\w*l', out: 'ED25519' }, hint: 'ssh-keygen -lf ~/DBash/Learn/l13/demo_key.pub', done: 'SHA256:… is the fingerprint.' },
+      { title: 'Your own ~/.ssh', explain: 'Your real keys live in ~/.ssh: id_ed25519 (private), id_ed25519.pub, known_hosts (servers you trust) and maybe config. This step only reads. The folder may not exist yet: that is fine.',
+        task: '`ls -la ~/.ssh`', answer: 'ls -la ~/.ssh', check: { typed: '^ls\\b.*\\.ssh', ok: null }, hint: 'ls -la ~/.ssh', done: 'Make your real key later with ssh-keygen -t ed25519 (Enter for the default file, and choose a passphrase).' },
+      { title: 'Connecting, without connecting', explain: 'You connect with `ssh user@host`, and `ssh-copy-id user@host` puts your public key on that server. `ssh -G host` shows the settings ssh *would* use, without connecting: a safe way to see it.',
+        task: '`ssh -G example.com | head -n 5`', answer: 'ssh -G example.com | head -n 5', check: { typed: '^ssh\\s+-G\\b', out: 'hostname' }, hint: 'ssh -G example.com | head -n 5', done: 'In DBash, ssh opens in the full-screen panel, so you can work on the other PC right here.' }
+    ],
+    quiz: [
+      { q: 'Which file do you give to a server?', options: ['demo_key', 'demo_key.pub', 'known_hosts'], answer: 1, why: 'The public key (.pub). The private key never leaves your PC.' },
+      { q: 'ssh says it does not know the fingerprint of a new server. What does that mean?', options: ['the server is broken', 'ssh asks if you trust this server', 'your key is wrong'], answer: 1, why: 'First connection: check the fingerprint, then answer yes; it goes into known_hosts.' },
+      { q: 'Which permissions does a private key need?', options: ['-rw------- (only you)', '-rw-r--r-- (everybody may read)', '-rwxrwxrwx'], answer: 0, why: 'ssh refuses a private key that others can read.' }
+    ],
+    cheatsheet: [['ssh USER@HOST', 'work in the terminal of another PC'], ['ssh-keygen -t ed25519', 'make a key pair (choose a passphrase)'], ['ssh-copy-id USER@HOST', 'put your public key on a server'], ['ssh-keygen -lf FILE.pub', 'the fingerprint of a key'], ['~/.ssh', 'your keys, known_hosts and config'], ['ssh -G HOST', 'the settings ssh would use (no connection)']]
   }
   ]
 };

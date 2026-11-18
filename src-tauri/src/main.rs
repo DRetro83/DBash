@@ -529,6 +529,7 @@ struct PtyData { data: String }
 
 const PTY_SETUP: &str = "stty -echo\n\
 export PS1= PS2= PAGER=cat SYSTEMD_PAGER=cat GIT_PAGER=cat MANPAGER=cat APT_LISTCHANGES_FRONTEND=none\n\
+[ -f ~/.bash_aliases ] && . ~/.bash_aliases >/dev/null 2>&1\n\
 alias ls='ls --color=always' grep='grep --color=always'\n\
 PROMPT_COMMAND='printf \"\\036DBASH:%s:%s\\037\" \"$?\" \"$PWD\"; unset SUDO_ASKPASS'\n";
 

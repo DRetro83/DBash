@@ -71,6 +71,11 @@
         const o = await shellStil('mkdir -p "$HOME/DBash/Learn" && ' + L.setup).catch(e => ({ code: 1, stderr: String(e) }));
         regel(o.code === 0 ? '   📁 Practice files are ready in ' + PAK.folder + '/l' + n + (/rm -rf/.test(L.setup) ? ' (made fresh for this lesson)' : '') : '   ⚠ Could not prepare the practice files: ' + (o.stderr || '').trim(), o.code === 0 ? 'l-sys' : 'l-warn');
       } else if (L.setup) regel('   [preview] The app makes practice files in ' + PAK.folder + '/l' + n + '.', 'l-sys');
+      for (const [cmd, pkg] of (L.requires || [])) {
+        if (!window.shellStil) break;
+        const o = await shellStil('command -v ' + cmd).catch(() => ({ code: 1 }));
+        if (o.code !== 0) { regel('   ⚠ This lesson needs ' + cmd + ', and it is not installed. Install it first:  sudo apt install ' + pkg, 'l-warn'); inp.value = 'sudo apt install ' + pkg }
+      }
       regel('   Type each command yourself in the prompt and press Enter. 💡 HINT and 👁 SHOW ME help when you are stuck.' + (aiKlaar ? ' Ask the AI anything in between.' : ''), 'l-sys');
     }
     if (S.les.stap >= L.steps.length) return quiz();

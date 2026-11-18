@@ -616,3 +616,15 @@ Overslaan mag. Opnieuw starten kan via `wizard` of ⚙ → AI → SETUP WIZARD.
 - **Een balk** loopt vol, daarna "ready". Een toets of klik slaat het over, en die toets komt niet in de prompt terecht. Uitzetten kan in ⚙ → LOOK → *Loading screen at start*.
 - **README op GitHub:** bovenaan staat de banner met het logo, en daaronder het laadscherm, zoals bij Emu Vault.
 - Getest in de echte app (Xvfb) en met een jsdom-test: het scherm verschijnt, toont 6 regels, sluit vanzelf, en een toets sluit het meteen.
+
+## 12z. Versie 0.4.2: Tab, eigen aliassen, 3 nieuwe lessen, modellenlijst op GitHub
+- **Tab vult bestands- en mapnamen aan**, zoals in Konsole. Het gebeurt na het eerste woord, of als het woord met `~`, `.` of `/` begint. DBash vraagt `compgen` in de map waarin je staat. Mappen krijgen een `/`, en spaties krijgen een `\` (`My\ Docs/`). Bij meerdere keuzes vult Tab het gemeenschappelijke begin aan, of toont het de lijst. Verborgen bestanden toont het alleen als je met een `.` begint.
+- **Eigen aliassen uit `~/.bash_aliases`:** de terminal van DBash laadt ze. DBash leest de lijst bij het opstarten en toont `⚡ upd → sudo apt update (your alias in ~/.bash_aliases)`. Het risico-label kijkt naar wat de alias echt doet: een alias met sudo vraagt dus bevestiging. Ook Tab vult ze aan.
+- **Nieuwe lessen:**
+  - **11 Network:** `hostname`, `ip -br a`, `ip route`, `ping`, `/etc/resolv.conf`, `ss -tulpn`, `nmcli`, `curl -I`. Deze les leest alleen.
+  - **12 Archives:** `tar -czf`, `-tzf` en `-xzf -C`, plus `gzip` en `gunzip`, in de oefenmap.
+  - **13 SSH and keys:** een oefensleutel met `ssh-keygen` in de oefenmap, de rechten, de publieke sleutel, de fingerprint, `~/.ssh` (alleen lezen) en `ssh -G`.
+  - Een les kan nu `requires` hebben. Ontbreekt een programma, dan zegt DBash welk pakket je moet installeren en zet hij `sudo apt install …` in de prompt.
+  - Alle 13 lessen draaien in de test echt in bash.
+- **Aanbevolen modellen** komen uit `data/models.json` in de repository. DBash controleert elk veld; klopt er iets niet, dan gebruikt hij de ingebouwde lijst.
+- **De repository heet nu DRetro83/DBash.** Oudere versies, die nog DBach gebruiken, vinden de updates via de doorverwijzing van GitHub.

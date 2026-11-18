@@ -6,7 +6,7 @@
 
 Debian · Ubuntu · Mint · (Arch) · runs on your own PC · no cloud, no account · works offline
 
-[⤓ Download the latest release](../../releases/latest) · [Lessons](#-learn-linux-10-checked-lessons) · [Safety](#-safety-first) · [Build it yourself](#-build-from-source)
+[⤓ Download the latest release](../../releases/latest) · [Lessons](#-learn-linux-13-checked-lessons) · [Safety](#-safety-first) · [Build it yourself](#-build-from-source)
 
 </div>
 
@@ -16,7 +16,7 @@ DBash is a real terminal (bash, like in Konsole) with an AI assistant built in. 
 
 - **Ask in plain words.** For example: *is bluetooth working?*, *install Steam* or *why is my disk full?* The AI answers with real commands for **your** system, and every command gets a risk label.
 - **Nothing runs by itself.** You press ▶ RUN or answer `y`. Commands that change your system always ask first, and dangerous ones ask twice.
-- **Learn while you use it.** There are 10 fixed lessons with exercises that you type yourself. DBash checks them, then gives a quiz and a cheat sheet. The AI explains and gives hints when you are stuck.
+- **Learn while you use it.** There are 13 fixed lessons with exercises that you type yourself. DBash checks them, then gives a quiz and a cheat sheet. The AI explains and gives hints when you are stuck.
 - **It is also just a terminal.** `ls -la`, `cd`, `sudo apt update`, `nano`, `htop` and `ssh` work like you expect.
 
 It is made for people who are new to Linux, or who want help without copying commands from random websites.
@@ -31,7 +31,7 @@ When DBash starts, it checks in about 2 seconds what you need: the terminal, the
 
 ![DBash: a lesson in the Teacher role](docs/img/lesson.png)
 
-## 🎓 Learn Linux: 10 checked lessons
+## 🎓 Learn Linux: 13 checked lessons
 
 Type `learn` in DBash and pick a lesson. The **lessons are fixed and checked**: an AI does not make them up as it goes along.
 
@@ -57,6 +57,9 @@ Type `learn` in DBash and pick a lesson. The **lessons are fixed and checked**: 
 | 8 | Disks and space | `df -h`, `lsblk`, `du \| sort -h`, `/etc/fstab`, `free -h` |
 | 9 | Processes | `ps aux`, `&`, `pgrep`, `kill`, `top -b`, load average |
 | 10 | Your first Bash script | variables, `for`, `if`, `nano`, `#!/bin/bash`, `$1` |
+| 11 | Network | `ip -br a`, `ip route`, `ping`, DNS, `ss -tulpn`, `nmcli`, `curl -I` |
+| 12 | Archives | `tar -czf`, `tar -tzf`, `tar -xzf -C`, `gzip`, `gunzip` |
+| 13 | SSH and keys | `ssh-keygen`, public and private keys, fingerprints, `~/.ssh`, `ssh -G` |
 
 All exercises happen in a practice folder (`~/DBash/Learn`). The only lesson that changes the system is lesson 5: it installs the tiny `cowsay` package and then removes it again. **Lessons work without AI.** With an AI loaded, it knows exactly which step you are on, so it explains that step and never invents another exercise.
 
@@ -73,8 +76,8 @@ The lessons are plain data in [`src/js/lessons.js`](src/js/lessons.js). Every ch
 
 ## ✦ Features
 
-- **◆ Local AI.** It uses [llamafile](https://github.com/mozilla-ai/llamafile) models (Gemma 4, gpt-oss, Qwen3…) on your own GPU through Vulkan (AMD, NVIDIA or Intel). Type `hf` and DBash finds the best and newest models on Hugging Face that fit your GPU, then downloads the one you pick.
-- **▣ A real terminal.** It is one bash session: `cd` is remembered, output streams live, and Ctrl+C stops a command. Full-screen programs (`nano`, `htop`, `less`, `ssh`) open in a panel inside DBash, and **◆ AI, LOOK** lets the AI read that screen.
+- **◆ Local AI.** It uses [llamafile](https://github.com/mozilla-ai/llamafile) models (Gemma 4, gpt-oss, Qwen3…) on your own GPU through Vulkan (AMD, NVIDIA or Intel). Type `hf` and DBash finds the best and newest models on Hugging Face that fit your GPU, then downloads the one you pick. The list of recommended models is [`data/models.json`](data/models.json) in this repository, so it can change without a new DBash version.
+- **▣ A real terminal.** It is one bash session: `cd` is remembered, output streams live, Ctrl+C stops a command, **Tab** completes file and folder names, and your own aliases from `~/.bash_aliases` work (their risk label follows what they really do). Full-screen programs (`nano`, `htop`, `less`, `ssh`) open in a panel inside DBash, and **◆ AI, LOOK** lets the AI read that screen.
 - **▶ Run all, AI reads along.** You can run every command of an answer at once. It pauses at anything that changes your system. Long output folds open with the error lines on top, and the AI reads the results.
 - **✎ File changes you can see.** When the AI wants to change a file, you first see the difference in colour. You answer `y`, `n`, `v` (view) or `e` (edit in nano). DBash keeps a backup, and ⟲ UNDO puts it back.
 - **⟲ Backup box.** Tick it before a change and DBash makes a Timeshift snapshot. Untick it when all is well. If not, press ⟲ ROLL BACK.
@@ -157,6 +160,7 @@ packaging/              header of the standalone .sh
 scripts/                build, preview, model downloader
 tests/                  npm test
 lessons/README.md       how to write a lesson
+data/models.json        the recommended AI models (DBash reads it from GitHub)
 docs/                   design notes
 ```
 
