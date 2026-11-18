@@ -2,7 +2,7 @@
    Runs in a normal browser as a preview (see demo.js) and inside the DBash app, where real.js
    replaces the simulated parts with the real backend (src-tauri/src/main.rs).
    Note: most names in the code are Dutch (regel = line, voerUit = run, vraagAI = ask the AI). */
-const DBASH_VERSIE='0.4.0';
+const DBASH_VERSIE='0.4.1';
 const DBASH_REPO='DRetro83/DBach';   // GitHub owner/repo: used for "update DBash" (change it here if the repo moves)
 const $=id=>document.getElementById(id);
 const out=$('out');
@@ -24,7 +24,7 @@ const opslag={
   set(k,v){GEHEUGEN[k]=v;try{localStorage.setItem(k,v)}catch(e){}}
 };
 /* ---------- settings ---------- */
-const STD={thema:'DBash',frame:'venster',historie:true,font:"'IBM Plex Mono',monospace",size:17,scan:true,glow:true,flicker:false,type:true,
+const STD={thema:'DBash',frame:'venster',historie:true,font:"'IBM Plex Mono',monospace",size:17,scan:true,glow:true,flicker:false,type:true,splash:true,
            model:'Qwen3.5-9B-Q5_K_S',url:'http://127.0.0.1:8080',gpu:true,think:false,taal:'en',kleur:true,dlmap:'~/DBash/Downloads',dlOpen:true,mmap:'~/DBash/Models',mOpen:true,lees:true,zoekregio:'',sudomodus:'15',ts_aan:false,deeluit:'ask',kennis:[],rol:'free',les:{nu:0,klaar:[]},ctx:'16384',runvraag:true,ts_ess:true,ts_dev:'',br1:'default',br2:'firefox-esr',br3:'none',mupd:'notify',mkeep:'1',oudOpen:false,tab:'ai',wizardKlaar:false,pins:['Qwen3.5-9B-Q5_K_S','gpt-oss-20b-mxfp4'],updstart:true,appupd:true,
            sys_send:true,sys_os:'Debian 13 (trixie)',sys_de:'KDE Plasma',sys_gpu:'AMD Radeon RX 9070 XT (16 GB)',sys_cpu:'AMD Ryzen 5 9600X',sys_ram:'32 GB',sys_extra:'Steam installed'};
 let S={...STD};STD.taal='auto';
@@ -64,7 +64,7 @@ const koppel=(id,key,prop='value',num=false)=>{
 };
 koppel('frame','frame');koppel('historie','historie','checked');koppel('font','font');koppel('size','size','value',true);
 koppel('fx-scan','scan','checked');koppel('fx-glow','glow','checked');
-koppel('fx-flicker','flicker','checked');koppel('fx-type','type','checked');koppel('fx-kleur','kleur','checked');koppel('dlmap','dlmap');koppel('lees','lees','checked');koppel('zoekregio','zoekregio');koppel('sudomodus','sudomodus');koppel('ts_ess','ts_ess','checked');koppel('ts_dev','ts_dev');koppel('br1','br1');koppel('br2','br2');koppel('br3','br3');koppel('mupd','mupd');koppel('mkeep','mkeep');koppel('mmap','mmap');koppel('updstart','updstart','checked');koppel('appupd','appupd','checked');
+koppel('fx-flicker','flicker','checked');koppel('fx-type','type','checked');koppel('fx-splash','splash','checked');koppel('fx-kleur','kleur','checked');koppel('dlmap','dlmap');koppel('lees','lees','checked');koppel('zoekregio','zoekregio');koppel('sudomodus','sudomodus');koppel('ts_ess','ts_ess','checked');koppel('ts_dev','ts_dev');koppel('br1','br1');koppel('br2','br2');koppel('br3','br3');koppel('mupd','mupd');koppel('mkeep','mkeep');koppel('mmap','mmap');koppel('updstart','updstart','checked');koppel('appupd','appupd','checked');
 // oude opgeslagen lettertype-instelling eenmalig vervangen door de nieuwe, duidelijkere standaard
 if(!S.v2){S.font=STD.font;S.size=STD.size;S.v2=true;$('font').value=S.font;$('size').value=S.size;}
 $('model').addEventListener('change',()=>{const v=$('model').value;if(v&&v!==S.model)wisselModel(v)});koppel('url','url');koppel('gpu','gpu','checked');koppel('think','think','checked');koppel('taal','taal');koppel('deeluit','deeluit');koppel('ctx','ctx');$('ctx').addEventListener('change',()=>{regel('◆ AI memory set to '+(+S.ctx).toLocaleString()+' tokens. It takes effect the next time the model loads (⚙ → LOAD AI, or switch model).','l-sys');toonGeheugen()});koppel('runvraag','runvraag','checked');['sys_os','sys_de','sys_gpu','sys_cpu','sys_ram','sys_extra'].forEach(k=>koppel(k,k));koppel('sys_send','sys_send','checked');

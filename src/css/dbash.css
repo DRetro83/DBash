@@ -389,3 +389,17 @@ input[type=checkbox]:focus-visible{outline:1px dashed var(--accent);outline-offs
 /* ⟲ BACKUP box in the footer */
 #bklabel{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;flex:none}#bklabel.aan{color:var(--info)}#bklabel:hover{color:var(--fg)}#bkinfo{color:var(--info)}#bkterug{color:var(--warn);border-color:var(--warn);flex:none}
 .pwrij{align-items:center}.pwveld{flex:1;min-width:0;background:none;border:0;outline:0;font:inherit;color:transparent;caret-color:var(--fg);padding:0}
+
+/* loading screen (splash.js) */
+#splash{position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4% 9%;background:radial-gradient(ellipse at center,#2b2621 0%,#24201c 60%,#1a1714 100%);color:#d8c8a8;font-family:'IBM Plex Mono',monospace;transition:opacity .3s;cursor:pointer}
+#splash::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px);pointer-events:none}
+#splash.weg{opacity:0}
+#splash .splogo{width:min(62%,560px);filter:drop-shadow(0 0 14px rgba(224,176,48,.18))}
+#splash .spver{margin:3% 0 4%;color:#8c7f68;letter-spacing:3px;font-size:12px;text-transform:uppercase}
+#splash .splijst{width:100%;max-width:560px;font-size:14px;min-height:9em}
+#splash .sprij{display:flex;gap:1.2em;opacity:0;transform:translateY(3px);transition:.25s}#splash .sprij.zie{opacity:1;transform:none}
+#splash .spt{width:4.6em;flex:none}#splash .spt.ok{color:#e0b030}#splash .ww{color:#e08a30}
+#splash .spn{flex:none;width:7em}#splash .spw{flex:1;color:#8c7f68;text-align:right;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}#splash .spw.ww{color:#e08a30}
+#splash .spbalk{width:100%;max-width:560px;height:8px;background:#3a332b;margin-top:4%}#splash .spbalk i{display:block;height:100%;width:0;background:#e0b030;box-shadow:0 0 8px rgba(224,176,48,.5);transition:width .3s}
+#splash .spvoet{width:100%;max-width:560px;display:flex;justify-content:space-between;color:#8c7f68;font-size:11px;margin-top:1.6%;letter-spacing:1px}
+#splash .spknip{animation:spk 1s steps(1) infinite}@keyframes spk{50%{opacity:0}}

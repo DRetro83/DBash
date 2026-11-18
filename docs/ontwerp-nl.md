@@ -604,3 +604,15 @@ Overslaan mag. Opnieuw starten kan via `wizard` of ⚙ → AI → SETUP WIZARD.
 - **GitHub:** README, LICENSE (MIT), CHANGELOG, CONTRIBUTING, SECURITY, `lessons/README.md` (hoe je een les schrijft), een CI-workflow (tests bij elke push) en een release-workflow (tag `v0.4.1` → AppImage, `.sh` en SHA256SUMS in een release).
 - **Tests:** `npm test` controleert het lessenpakket en voert elke stap zonder sudo **echt uit in bash** met een tijdelijke thuismap. Daarnaast is er een rooktest van het scherm in jsdom (voorvertoning, lesverloop in app-modus, update-check). `cargo test` test de backend.
 - Getest in de echte app (Xvfb): les 1, 2, 3, 4 en 10 helemaal doorlopen (met nano in het paneel). De update is van begin tot eind getest tegen een nagebootste GitHub-release: download, checksum, menu-item, oud bestand naar Backups, herstart in de nieuwe versie, en de oude uitgepakte kopie opgeruimd.
+
+## 12y. Versie 0.4.1: laadscherm
+- **Bij het opstarten** (ongeveer 2 seconden): een groot pixellogo **DBASH** in de stijl van Emu Vault (mosterdgeel met donkere rand en schaduw), de versie en je thuismap, en daarna zes regels met **echte** controles:
+  - **Terminal:** de bash-versie en je map.
+  - **AI engine:** de llamafile-motor in je modellenmap, of `[ !! ] not found · type hf to get it`.
+  - **Model:** je laatste model, en of het op je GPU past, of `[ !! ] no model yet · type hf`.
+  - **Backup:** een actieve ⟲ BACKUP, of of Timeshift er is.
+  - **Lessons:** hoeveel lessen klaar zijn, of welke les nog openstaat.
+  - **Updates:** of de dagelijkse update-check aan staat.
+- **Een balk** loopt vol, daarna "ready". Een toets of klik slaat het over, en die toets komt niet in de prompt terecht. Uitzetten kan in ⚙ → LOOK → *Loading screen at start*.
+- **README op GitHub:** bovenaan staat de banner met het logo, en daaronder het laadscherm, zoals bij Emu Vault.
+- Getest in de echte app (Xvfb) en met een jsdom-test: het scherm verschijnt, toont 6 regels, sluit vanzelf, en een toets sluit het meteen.

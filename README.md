@@ -1,14 +1,12 @@
 <div align="center">
 
-# DBash
+![DBash](docs/img/banner.png)
 
 **A smart Linux terminal with a local AI that helps you learn, and asks before it changes anything.**
 
 Debian · Ubuntu · Mint · (Arch) · runs on your own PC · no cloud, no account · works offline
 
-[⤓ Download](../../releases/latest) · [Lessons](#-learn-linux-10-checked-lessons) · [Safety](#-safety-first) · [Build it yourself](#-build-from-source)
-
-![DBash: a lesson in the Teacher role](docs/img/lesson.png)
+[⤓ Download the latest release](../../releases/latest) · [Lessons](#-learn-linux-10-checked-lessons) · [Safety](#-safety-first) · [Build it yourself](#-build-from-source)
 
 </div>
 
@@ -22,6 +20,16 @@ DBash is a real terminal (bash, like in Konsole) with an AI assistant built in. 
 - **It is also just a terminal.** `ls -la`, `cd`, `sudo apt update`, `nano`, `htop` and `ssh` work like you expect.
 
 It is made for people who are new to Linux, or who want help without copying commands from random websites.
+
+<div align="center">
+
+![The DBash loading screen: it checks the terminal, the AI engine, your model, backups, lessons and updates](docs/img/splash.png)
+
+</div>
+
+When DBash starts, it checks in about 2 seconds what you need: the terminal, the AI engine, your model, Timeshift, your lessons and updates. Anything that is missing gets **[ !! ]** and a hint, such as *no model yet · type hf*.
+
+![DBash: a lesson in the Teacher role](docs/img/lesson.png)
 
 ## 🎓 Learn Linux: 10 checked lessons
 
@@ -142,6 +150,7 @@ src/                    the screen (plain HTML, CSS and JavaScript, no framework
   js/demo.js            browser preview only: simulated commands and demo answers
   js/real.js            inside the app: the real backend (terminal, sudo, files, Timeshift, updates)
   js/learn.js           runs the lessons and checks what you type
+  js/splash.js          the loading screen at start
   vendor/               xterm.js (MIT) and the fonts (OFL)
 src-tauri/src/main.rs   backend in Rust (Tauri 2): PTY, commands, llamafile, downloads, self-update
 packaging/              header of the standalone .sh

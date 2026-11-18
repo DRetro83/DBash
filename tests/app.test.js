@@ -20,7 +20,7 @@ function pagina() {
 }
 const wacht = ms => new Promise(r => setTimeout(r, ms));
 
-function maak(tauri) {
+function maak(tauri, extra) {
   const fouten = [];
   const vc = new VirtualConsole();
   vc.on('jsdomError', e => fouten.push(String(e && (e.stack || e.message) || e)));
@@ -30,7 +30,7 @@ function maak(tauri) {
       w.Element.prototype.scrollIntoView = function () {};
       Object.assign(w, { ReadableStream, TextEncoder, TextDecoder, ResizeObserver: class { observe() {} disconnect() {} } });
       w.requestAnimationFrame = f => setTimeout(f, 0); w.cancelAnimationFrame = clearTimeout;
-      w.localStorage.setItem('debhelp', JSON.stringify({ wizardKlaar: true, type: false, appupd: false }));
+      w.localStorage.setItem('debhelp', JSON.stringify(Object.assign({ wizardKlaar: true, type: false, appupd: false, splash: false }, extra || {})));
       w.addEventListener('error', e => fouten.push(String(e.error && e.error.stack || e.message)));
       if (tauri) w.__TAURI__ = tauri(w);
     }
@@ -164,4 +164,26 @@ test('app mode: update check finds a newer release, but needs checksums', async 
   await wacht(300);
   assert.match(tekst(d), /is the newest version/);
   assert.deepStrictEqual(fouten, []);
+});
+
+test('loading screen: shows the checks, then goes away; a key skips it', async () => {
+  const { w, d, fouten } = maak(null, { splash: true });
+  await wacht(300);
+  assert.ok(d.getElementById('splash'), 'the loading screen is there');
+  assert.match(d.querySelector('#splash .spver').textContent, /version 0\.4\.\d/);
+  await wacht(2200);
+  const rijen = [...d.querySelectorAll('#splash .sprij')].map(r => r.textContent);
+  assert.strictEqual(rijen.length, 6, rijen.join(' | '));
+  assert.match(rijen[0], /\[ OK \]Terminal/);
+  assert.match(rijen[4], /Lessons0 of 10 done/);
+  await wacht(1400);
+  assert.ok(!d.getElementById('splash'), 'it closes by itself');
+
+  const b = maak(null, { splash: true });
+  await wacht(300);
+  b.d.dispatchEvent(new b.w.KeyboardEvent('keydown', { key: 'x', bubbles: true }));
+  await wacht(500);
+  assert.ok(!b.d.getElementById('splash'), 'a key closes it');
+  assert.strictEqual(b.d.getElementById('in').value, '', 'the key does not land in the prompt');
+  assert.deepStrictEqual(fouten.concat(b.fouten), []);
 });

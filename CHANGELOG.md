@@ -2,6 +2,10 @@
 
 The release workflow uses the section of a version as its release notes, and DBash shows the first lines when it offers an update. Keep them short.
 
+## 0.4.1
+
+- **Loading screen:** a big pixel logo and a short list of real checks at start (terminal, AI engine, model, backup, lessons, updates). Things that are missing show [ !! ], such as no model yet. Any key skips it, and ⚙ → LOOK turns it off.
+
 ## 0.4.0
 
 - **Fixed, checked lessons.** The 10 lessons are now a lesson pack. DBash shows each step, checks your exercise itself (exit code, output, folder, files) and moves on. Then comes a quiz and a cheat sheet. They work without AI. The AI gets the current step, so it explains that step and never invents other exercises.
