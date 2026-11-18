@@ -1,0 +1,31 @@
+name: CI
+# Tests on every push and pull request: the lesson pack (run for real in bash), the screen (jsdom)
+# and the Rust backend.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: System libraries for Tauri
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci --no-audit --no-fund
+      - name: Lessons and screen
+        run: npm test
+      - name: Backend
+        working-directory: src-tauri
+        run: cargo test --release -- --test-threads=1

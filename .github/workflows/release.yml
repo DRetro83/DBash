@@ -1,0 +1,46 @@
+name: Release
+# Push a tag like v0.4.1 and this builds the AppImage, the standalone dbash-<version>.sh and
+# SHA256SUMS, and puts them in a GitHub release. DBash's self-update reads that release.
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04          # an older glibc, so the AppImage also runs on older systems
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: System libraries for Tauri
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf file
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - name: Tag must match the version
+        run: |
+          V=$(sed -n 's/^version = "\(.*\)"/\1/p' src-tauri/Cargo.toml | head -1)
+          [ "v$V" = "$GITHUB_REF_NAME" ] || { echo "Tag $GITHUB_REF_NAME does not match version $V"; exit 1; }
+          echo "VERSION=$V" >> "$GITHUB_ENV"
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
+      - name: Build
+        run: bash scripts/build.sh
+      - name: Release notes from CHANGELOG.md
+        run: awk -v v="$VERSION" '/^## /{p=($2==v)} p' CHANGELOG.md | tail -n +2 > dist/NOTES.md
+      - uses: softprops/action-gh-release@v2
+        with:
+          body_path: dist/NOTES.md
+          files: |
+            dist/dbash-${{ env.VERSION }}.sh
+            dist/DBash-${{ env.VERSION }}-x86_64.AppImage
+            dist/dbash-get-models.sh
+            dist/SHA256SUMS
